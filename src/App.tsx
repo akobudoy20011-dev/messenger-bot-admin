@@ -154,6 +154,30 @@ export default function App() {
     };
   }, [fetchState, fetchLogs]);
 
+  const handleConnectCredentials = async (email: string, password: string) => {
+    setConnBusy(true);
+    await addLog('info', 'Submitting Facebook login to ECLIPSE…', 'facebook');
+
+    try {
+      await eclipseApi('/api/dashboard/connect-credentials', 'POST', dashboardKey, {
+        email,
+        password,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await syncRuntimeState(setState, dashboardKey);
+      setApiReady(true);
+      setApiError(null);
+      await addLog('success', 'Facebook login submitted; ECLIPSE is connecting…', 'facebook');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Facebook login failed';
+      setApiError(message);
+      await addLog('error', 'Facebook login failed. Check the dashboard error message.', 'facebook');
+    } finally {
+      setConnBusy(false);
+    }
+  };
+
   const handleConnectSession = async (file: File) => {
     setConnBusy(true);
     await addLog('info', 'Uploading a Facebook session to ECLIPSE…', 'facebook');
@@ -331,6 +355,7 @@ export default function App() {
           state={state}
           busy={connBusy}
           onConnectSession={handleConnectSession}
+          onConnectCredentials={handleConnectCredentials}
           onReconnect={handleReconnect}
           onDisconnect={handleDisconnect}
         />
