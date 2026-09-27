@@ -66,10 +66,16 @@ async function syncRuntimeState(
     facebook_user_name: data.facebook_user_name ?? null,
     session_active: data.session_active === true,
     bot_running: data.bot_running === true,
+    login_in_progress: data.login_in_progress === true,
+    login_error: data.login_error ?? null,
     last_connected_at: data.last_connected_at ?? null,
     last_disconnected_at: data.last_disconnected_at ?? null,
+    login_in_progress: data.login_in_progress === true,
+    login_error: data.login_error ?? null,
     updated_at: data.updated_at || new Date().toISOString(),
   });
+
+  return data;
 }
 
 const DEFAULT_STATE: BotState = {
@@ -78,6 +84,8 @@ const DEFAULT_STATE: BotState = {
   facebook_user_name: null,
   session_active: false,
   bot_running: false,
+  login_in_progress: false,
+  login_error: null,
   last_connected_at: null,
   last_disconnected_at: null,
   updated_at: new Date().toISOString(),
@@ -142,9 +150,9 @@ export default function App() {
     }
 
     try {
-      await syncRuntimeState(setState, dashboardKey);
+      const data = await syncRuntimeState(setState, dashboardKey);
       setApiReady(true);
-      setApiError(null);
+      setApiError(data.login_error ? String(data.login_error) : null);
     } catch (error) {
       setApiReady(false);
       setApiError(error instanceof Error ? error.message : "ECLIPSE API unavailable");
@@ -177,19 +185,9 @@ export default function App() {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      const status = await eclipseApi('/api/dashboard/status', 'GET', dashboardKey);
-      setState({
-        id: 1,
-        facebook_connected: status.facebook_connected === true,
-        facebook_user_name: status.facebook_user_name ?? null,
-        session_active: status.session_active === true,
-        bot_running: status.bot_running === true,
-        last_connected_at: status.last_connected_at ?? null,
-        last_disconnected_at: status.last_disconnected_at ?? null,
-        updated_at: status.updated_at || new Date().toISOString(),
-      });
+      const status = await syncRuntimeState(setState, dashboardKey);
       setApiReady(true);
-      setApiError(status.login_error || null);
+      setApiError(status.login_error ? String(status.login_error) : null);
       await addLog(
         status.login_error ? 'error' : 'success',
         status.login_error
