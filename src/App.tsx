@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import type { BotState, BotLog, LogLevel } from '@/types';
 import Header from '@/components/Header';
 import ConnectionCard from '@/components/ConnectionCard';
@@ -84,13 +83,30 @@ const DEFAULT_STATE: BotState = {
   updated_at: new Date().toISOString(),
 };
 
-async function addLog(level: LogLevel, message: string, source: string) {
-  await supabase.from('bot_logs').insert({ level, message, source });
+const LOG_STORAGE_KEY = "eclipse_dashboard_logs";
+
+function loadStoredLogs(): BotLog[] {
+  try {
+    const raw = localStorage.getItem(LOG_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as BotLog[]).slice(0, 200) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistLogs(logs: BotLog[]) {
+  try {
+    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logs.slice(0, 200)));
+  } catch {
+    // Local activity logs are best-effort and never block dashboard controls.
+  }
 }
 
 export default function App() {
   const [state, setState] = useState<BotState>(DEFAULT_STATE);
-  const [logs, setLogs] = useState<BotLog[]>([]);
+  const [logs, setLogs] = useState<BotLog[]>(loadStoredLogs);
   const [loading, setLoading] = useState(true);
   const [connBusy, setConnBusy] = useState(false);
   const [botBusy, setBotBusy] = useState(false);
@@ -99,6 +115,25 @@ export default function App() {
   );
   const [apiReady, setApiReady] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  const addLog = useCallback((level: LogLevel, message: string, source: string) => {
+    setLogs((prev) => {
+      const next: BotLog[] = [
+        {
+          id: crypto.randomUUID(),
+          level,
+          message,
+          source,
+          created_at: new Date().toISOString(),
+        },
+        ...prev,
+      ].slice(0, 200);
+
+      persistLogs(next);
+      return next;
+    });
+  }, []);
+
 
   const fetchState = useCallback(async () => {
     if (!dashboardKey) {
@@ -116,33 +151,11 @@ export default function App() {
     }
   }, [dashboardKey]);
 
-  const fetchLogs = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('bot_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
-    if (!error && data) setLogs(data as BotLog[]);
-  }, []);
-
   useEffect(() => {
     (async () => {
-      await Promise.all([fetchState(), fetchLogs()]);
+      await fetchState();
       setLoading(false);
     })();
-
-    const logsChannel = supabase
-      .channel('bot_logs_changes')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'bot_logs' },
-        (payload) => {
-          if (payload.new) {
-            setLogs((prev) => [payload.new as BotLog, ...prev].slice(0, 200));
-          }
-        },
-      )
-      .subscribe();
 
     const poll = window.setInterval(() => {
       void fetchState();
@@ -150,9 +163,8 @@ export default function App() {
 
     return () => {
       window.clearInterval(poll);
-      supabase.removeChannel(logsChannel);
     };
-  }, [fetchState, fetchLogs]);
+  }, [fetchState]);
 
   const handleConnectCredentials = async (email: string, password: string) => {
     setConnBusy(true);
@@ -278,11 +290,12 @@ export default function App() {
     }
   };
 
-  const handleClearLogs = async () => {
-    const { error } = await supabase.from('bot_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    if (!error) {
-      setLogs([]);
-      await addLog('info', 'Logs cleared by admin', 'system');
+  const handleClearLogs = () => {
+    setLogs([]);
+    try {
+      localStorage.removeItem(LOG_STORAGE_KEY);
+    } catch {
+      // Ignore local storage failures.
     }
   };
 
