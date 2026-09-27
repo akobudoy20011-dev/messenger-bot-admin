@@ -16,7 +16,8 @@ const DASHBOARD_KEY_STORAGE = "eclipse_dashboard_key";
 async function eclipseApi(
   path: string,
   method = "GET",
-  dashboardKey = ""
+  dashboardKey = "",
+  body?: unknown
 ) {
   if (!ECLIPSE_API_URL) {
     throw new Error("VITE_ECLIPSE_API_URL is not configured.");
@@ -35,6 +36,7 @@ async function eclipseApi(
         "Content-Type": "application/json",
         "X-ECLIPSE-DASHBOARD-KEY": key,
       },
+      body: body === undefined ? undefined : JSON.stringify(body),
     }
   );
 
@@ -151,6 +153,35 @@ export default function App() {
       supabase.removeChannel(logsChannel);
     };
   }, [fetchState, fetchLogs]);
+
+  const handleConnectSession = async (file: File) => {
+    setConnBusy(true);
+    await addLog('info', 'Uploading a Facebook session to ECLIPSE…', 'facebook');
+
+    try {
+      const fileText = await file.text();
+      const parsed = JSON.parse(fileText);
+
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error('The selected file must contain a non-empty Facebook cookie/appState array.');
+      }
+
+      await eclipseApi('/api/dashboard/connect-session', 'POST', dashboardKey, {
+        appState: parsed,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await syncRuntimeState(setState, dashboardKey);
+      setApiReady(true);
+      setApiError(null);
+      await addLog('success', 'Facebook session submitted; ECLIPSE is connecting…', 'facebook');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Facebook session upload failed';
+      setApiError(message);
+      await addLog('error', `Facebook session upload failed: ${message}`, 'facebook');
+    } finally {
+      setConnBusy(false);
+    }
+  };
 
   const handleReconnect = async () => {
     setConnBusy(true);
@@ -299,6 +330,7 @@ export default function App() {
         <ConnectionCard
           state={state}
           busy={connBusy}
+          onConnectSession={handleConnectSession}
           onReconnect={handleReconnect}
           onDisconnect={handleDisconnect}
         />
