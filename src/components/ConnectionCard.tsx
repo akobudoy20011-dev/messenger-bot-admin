@@ -41,7 +41,6 @@ export default function ConnectionCard({
     if (!email || !facebookPassword) return;
 
     await onConnectCredentials(email, facebookPassword);
-    setFacebookPassword('');
   };
 
   return (
