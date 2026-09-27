@@ -4,18 +4,17 @@ A private admin dashboard for managing a Node.js Messenger (Facebook) bot.
 
 ## Features
 
-- **Facebook Connection** — view connection status, reconnect and disconnect
+- **Facebook Connection** — view connection status, reconnect, disconnect, upload a session, or submit Facebook credentials directly to ECLIPSE
 - **Session Status** — monitor active chat session state
 - **Bot Controls** — start and stop the bot runtime
-- **Activity Logs** — live, color-coded log feed with realtime updates via Supabase
+- **Activity Logs** — local, color-coded dashboard activity logs
 - **Coquette pink/lilac UI** — glassmorphism design with animations
 
 ## Tech Stack
 
 - React + TypeScript + Vite
 - Tailwind CSS
-- Supabase (database + realtime subscriptions)
-- lucide-react icons
+- lucide-react
 
 ## Getting Started
 
@@ -25,24 +24,30 @@ A private admin dashboard for managing a Node.js Messenger (Facebook) bot.
 npm install
 ```
 
-2. Copy `.env.example` to `.env` and fill in your Supabase URL and anon key.
+2. Configure the ECLIPSE bot API URL:
 
-3. Run the SQL migration in `supabase/migrations/` against your Supabase project to create the `bot_state` and `bot_logs` tables with RLS policies.
+```env
+VITE_ECLIPSE_API_URL=https://your-eclipse-bot.onrender.com
+```
 
-4. Start the dev server:
+3. Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-## Database
+For Render, use:
 
-The dashboard uses two Supabase tables:
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
 
-- `bot_state` — singleton row holding Facebook connection, session, and bot running status
-- `bot_logs` — append-only log entries (info / warn / error / success)
+The dashboard does not require a Supabase project or Supabase environment variables.
 
-Both tables have Row Level Security enabled with anon-accessible policies (single-tenant, no auth).
+## Runtime Connection
+
+The dashboard talks directly to the ECLIPSE bot API. The dashboard access key is entered in the browser and kept in session storage for the current browser session.
+
+Facebook credentials are sent directly to ECLIPSE over HTTPS and are not stored in the dashboard.
 
 ## License
 
