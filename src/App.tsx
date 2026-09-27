@@ -112,6 +112,42 @@ function persistLogs(logs: BotLog[]) {
   }
 }
 
+function normalizeSessionExport(value: unknown): unknown {
+  let current = value;
+
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (typeof current === 'string') {
+      const text = current.trim();
+      if (!text) throw new Error('The selected session file is empty.');
+
+      try {
+        current = JSON.parse(text) as unknown;
+        continue;
+      } catch {
+        return text;
+      }
+    }
+
+    if (Array.isArray(current)) {
+      if (current.length === 0) throw new Error('The selected session file contains no cookies.');
+      return current;
+    }
+
+    if (current && typeof current === 'object') {
+      const record = current as Record<string, unknown>;
+      const nestedKey = ['appState', 'cookies', 'data'].find((key) => key in record);
+      if (nestedKey) {
+        current = record[nestedKey];
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  throw new Error('Use a Facebook cookie export: an array, a wrapped export, or a cookie-header text file.');
+}
+
 export default function App() {
   const [state, setState] = useState<BotState>(DEFAULT_STATE);
   const [logs, setLogs] = useState<BotLog[]>(loadStoredLogs);
@@ -174,56 +210,35 @@ export default function App() {
     };
   }, [fetchState]);
 
-  const handleConnectCredentials = async (email: string, password: string) => {
-    setConnBusy(true);
-    await addLog('info', 'Submitting Facebook login to ECLIPSE…', 'facebook');
-
-    try {
-      await eclipseApi('/api/dashboard/connect-credentials', 'POST', dashboardKey, {
-        email,
-        password,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const status = await syncRuntimeState(setState, dashboardKey);
-      setApiReady(true);
-      setApiError(status.login_error ? String(status.login_error) : null);
-      await addLog(
-        status.login_error ? 'error' : 'success',
-        status.login_error
-          ? `Facebook login failed: ${status.login_error}`
-          : 'Facebook login submitted; ECLIPSE is connecting…',
-        'facebook'
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Facebook login failed';
-      setApiError(message);
-      await addLog('error', 'Facebook login failed. Check the dashboard error message.', 'facebook');
-    } finally {
-      setConnBusy(false);
-    }
-  };
-
   const handleConnectSession = async (file: File) => {
     setConnBusy(true);
     await addLog('info', 'Uploading a Facebook session to ECLIPSE…', 'facebook');
 
     try {
       const fileText = await file.text();
-      const parsed = JSON.parse(fileText);
+      let parsed: unknown;
 
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        throw new Error('The selected file must contain a non-empty Facebook cookie/appState array.');
+      try {
+        parsed = JSON.parse(fileText);
+      } catch {
+        parsed = fileText.trim();
       }
 
+      const session = normalizeSessionExport(parsed);
+
       await eclipseApi('/api/dashboard/connect-session', 'POST', dashboardKey, {
-        appState: parsed,
+        appState: session,
       });
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      await syncRuntimeState(setState, dashboardKey);
+      const status = await syncRuntimeState(setState, dashboardKey);
       setApiReady(true);
-      setApiError(null);
-      await addLog('success', 'Facebook session submitted; ECLIPSE is connecting…', 'facebook');
+      const loginError = status.login_error ? String(status.login_error) : null;
+      setApiError(loginError);
+      await addLog(
+        loginError ? 'error' : 'success',
+        loginError ? 'Facebook session rejected: ' + loginError : 'Facebook session submitted; ECLIPSE is connecting…',
+        'facebook'
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Facebook session upload failed';
       setApiError(message);
@@ -382,7 +397,6 @@ export default function App() {
           state={state}
           busy={connBusy}
           onConnectSession={handleConnectSession}
-          onConnectCredentials={handleConnectCredentials}
           onReconnect={handleReconnect}
           onDisconnect={handleDisconnect}
         />
