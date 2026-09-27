@@ -177,10 +177,26 @@ export default function App() {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      await syncRuntimeState(setState, dashboardKey);
+      const status = await eclipseApi('/api/dashboard/status', 'GET', dashboardKey);
+      setState({
+        id: 1,
+        facebook_connected: status.facebook_connected === true,
+        facebook_user_name: status.facebook_user_name ?? null,
+        session_active: status.session_active === true,
+        bot_running: status.bot_running === true,
+        last_connected_at: status.last_connected_at ?? null,
+        last_disconnected_at: status.last_disconnected_at ?? null,
+        updated_at: status.updated_at || new Date().toISOString(),
+      });
       setApiReady(true);
-      setApiError(null);
-      await addLog('success', 'Facebook login submitted; ECLIPSE is connecting…', 'facebook');
+      setApiError(status.login_error || null);
+      await addLog(
+        status.login_error ? 'error' : 'success',
+        status.login_error
+          ? `Facebook login failed: ${status.login_error}`
+          : 'Facebook login submitted; ECLIPSE is connecting…',
+        'facebook'
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Facebook login failed';
       setApiError(message);
