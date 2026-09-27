@@ -6,6 +6,8 @@ export interface BotState {
   facebook_user_name: string | null;
   session_active: boolean;
   bot_running: boolean;
+  login_in_progress: boolean;
+  login_error: string | null;
   last_connected_at: string | null;
   last_disconnected_at: string | null;
   updated_at: string;
