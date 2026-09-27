@@ -129,17 +129,6 @@ export default function App() {
       setLoading(false);
     })();
 
-    const stateChannel = supabase
-      .channel('bot_state_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'bot_state' },
-        (payload) => {
-          if (payload.new) setState(payload.new as BotState);
-        },
-      )
-      .subscribe();
-
     const logsChannel = supabase
       .channel('bot_logs_changes')
       .on(
@@ -153,8 +142,12 @@ export default function App() {
       )
       .subscribe();
 
+    const poll = window.setInterval(() => {
+      void fetchState();
+    }, 5000);
+
     return () => {
-      supabase.removeChannel(stateChannel);
+      window.clearInterval(poll);
       supabase.removeChannel(logsChannel);
     };
   }, [fetchState, fetchLogs]);
