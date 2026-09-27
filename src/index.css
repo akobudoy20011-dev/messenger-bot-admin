@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+    background: linear-gradient(135deg, #fdf2f8 0%, #f9f5ff 50%, #fce7f3 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .scrollbar-coquette::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: transparent;
+    cursor: pointer;
+    scrollbar-width: thin;
+    scrollbar-color: #f9a8d4 transparent;
+    -webkit-scrollbar-thumb: #f9a8d4;
+    -webkit-scrollbar-track: transparent;
+  }
+  .scrollbar-coquette::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #f9a8d4, #c084fc);
+  }
+  .scrollbar-coquette::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 9999px;
+  }
+  .glass-card {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
