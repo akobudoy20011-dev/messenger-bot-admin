@@ -5,6 +5,7 @@ import type { BotState } from '@/types';
 interface ConnectionCardProps {
   state: BotState;
   busy: boolean;
+  onConnectSession: (file: File) => void;
   onReconnect: () => void;
   onDisconnect: () => void;
 }
@@ -23,6 +24,7 @@ function formatTime(ts: string | null): string {
 export default function ConnectionCard({
   state,
   busy,
+  onConnectSession,
   onReconnect,
   onDisconnect,
 }: ConnectionCardProps) {
@@ -79,7 +81,26 @@ export default function ConnectionCard({
         </div>
       </div>
 
-      <div className="mt-5 flex gap-3">
+      <div className="mt-5 space-y-3">
+        {!state.facebook_connected && (
+          <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-coquette-200 bg-white/70 px-4 py-3 text-sm font-semibold text-coquette-700 transition-all duration-300 hover:bg-coquette-50 hover:border-coquette-300">
+            <UserCircle2 size={16} />
+            {busy ? 'Connecting…' : 'Connect Facebook session'}
+            <input
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.currentTarget.value = '';
+                if (file) onConnectSession(file);
+              }}
+            />
+          </label>
+        )}
+
+        <div className="flex gap-3">
         <button
           onClick={onReconnect}
           disabled={busy || state.facebook_connected}
@@ -96,6 +117,13 @@ export default function ConnectionCard({
           <WifiOff size={16} />
           Disconnect
         </button>
+        </div>
+        {!state.facebook_connected && (
+          <p className="text-center text-[11px] leading-relaxed text-coquette-400">
+            Upload the JSON appState/cookie export from your Facebook session.
+            It is sent directly to your ECLIPSE server; it is not stored in this dashboard.
+          </p>
+        )}
       </div>
     </div>
   );
