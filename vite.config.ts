@@ -16,6 +16,9 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0',
     // Render provides the public hostname at runtime.
-    allowedHosts: [process.env.RENDER_EXTERNAL_HOSTNAME || 'localhost'],
+    allowedHosts: [
+      'messenger-bot-admin-1.onrender.com',
+      process.env.RENDER_EXTERNAL_HOSTNAME || 'localhost',
+    ],
   },
 });
