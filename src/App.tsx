@@ -488,10 +488,29 @@ export default function App() {
       return null;
     }
 
-    const data = await eclipseApi('/api/dashboard/snapshot', 'GET', dashboardKey);
-    setSnapshot(data.snapshot ?? null);
-    setRuntime(data.runtime ?? null);
-    return data;
+    const [snapshotResult, healthResult] = await Promise.allSettled([
+      eclipseApi('/api/dashboard/snapshot', 'GET', dashboardKey),
+      eclipseApi('/api/dashboard/health', 'GET', dashboardKey),
+    ]);
+
+    if (snapshotResult.status === 'fulfilled') {
+      setSnapshot(snapshotResult.value.snapshot ?? null);
+    }
+
+    if (healthResult.status === 'fulfilled') {
+      setRuntime(healthResult.value.runtime ?? null);
+    }
+
+    if (snapshotResult.status === 'rejected' && healthResult.status === 'rejected') {
+      throw snapshotResult.reason instanceof Error
+        ? snapshotResult.reason
+        : new Error('ECLIPSE dashboard data and health endpoints are unavailable.');
+    }
+
+    return {
+      snapshot: snapshotResult.status === 'fulfilled' ? snapshotResult.value.snapshot ?? null : null,
+      runtime: healthResult.status === 'fulfilled' ? healthResult.value.runtime ?? null : null,
+    };
   }, [dashboardKey]);
   const syncDashboardEvents = useCallback(async () => {
     if (!dashboardKey) { setEvents([]); return; }
