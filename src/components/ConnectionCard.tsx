@@ -57,7 +57,7 @@ function RawCookieInput({ busy, onSubmit }: RawCookieInputProps) {
             autoCorrect="off"
             autoCapitalize="none"
             placeholder="c_user=…; xs=…; fr=…"
-            className={`min-h-28 w-full resize-y rounded-2xl border border-coquette-100 bg-[#fffafd] px-4 py-3 pr-12 font-mono text-[11px] leading-5 text-coquette-800 outline-none transition placeholder:text-coquette-200 focus:border-coquette-400 focus:ring-4 focus:ring-coquette-100/70 disabled:opacity-60 ${revealed ? '' : '[&]:[-webkit-text-security:disc]'}`}
+            className={`min-h-28 w-full resize-y rounded-2xl border border-coquette-100 bg-[#fffafd] px-4 py-3 pr-12 font-mono text-[11px] leading-5 text-coquette-800 outline-none transition placeholder:text-coquette-200 focus:border-coquette-400 focus:ring-4 focus:ring-coquette-100/70 disabled:opacity-60 ${revealed ? '' : 'cookie-secret'}`}
           />
           <button
             type="button"
