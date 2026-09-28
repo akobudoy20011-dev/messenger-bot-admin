@@ -1341,3 +1341,43 @@ button {
     max-height: 76vh !important;
   }
 }
+
+
+/* Overview panel correction: keep the command-center card compact while
+   preserving real scrolling for its contents. */
+.command-panel.is-overview {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 300px !important;
+}
+
+.command-panel.is-overview .command-panel-inner {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 1023px) {
+  .command-panel.is-overview {
+    height: auto !important;
+    max-height: 250px !important;
+  }
+
+  .command-panel.is-overview .command-panel-inner {
+    height: auto !important;
+    max-height: 250px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .command-panel.is-overview {
+    height: auto !important;
+    max-height: 230px !important;
+  }
+
+  .command-panel.is-overview .command-panel-inner {
+    max-height: 230px !important;
+  }
+}
