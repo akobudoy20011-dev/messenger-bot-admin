@@ -391,7 +391,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
 
       <div className="galaxy-system"
         style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}>
-        <div className="galaxy-sun" aria-hidden="true"><span className="galaxy-sun-corona" /></div>
+        <button type="button" className="galaxy-sun" aria-label="Open ECLIPSE overview" onClick={() => handleNodeClick('overview')}><span className="galaxy-sun-corona" aria-hidden="true" /></button>
 
         <svg className="galaxy-orbits" viewBox="-400 -400 800 800" aria-hidden="true">
           {ORBITS.map((orbit, index) => (
