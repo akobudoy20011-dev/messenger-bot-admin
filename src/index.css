@@ -1306,3 +1306,38 @@ button {
   }
 }
 
+
+
+/* Command panel scroll fix: give the fixed panel a real viewport height. */
+.command-panel {
+  height: calc(100vh - 116px) !important;
+  min-height: 0 !important;
+}
+
+.command-panel-inner {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1023px) {
+  .command-panel {
+    height: min(72vh, 680px) !important;
+    max-height: min(72vh, 680px) !important;
+  }
+
+  .command-panel-inner {
+    height: 100% !important;
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .command-panel {
+    height: 76vh !important;
+    max-height: 76vh !important;
+  }
+}
