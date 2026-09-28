@@ -266,7 +266,8 @@ export default function App() {
         return;
       }
       try {
-        await syncRuntimeState();\n        await syncDashboardSnapshot();
+        await syncRuntimeState();
+        await syncDashboardSnapshot();
       } catch (error) {
         if (!cancelled) {
           setApiReady(false);
