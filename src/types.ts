@@ -137,3 +137,50 @@ export interface DashboardRuntime {
   memory: Record<string, number>;
   database: boolean | null;
 }
+
+
+export interface DashboardEvent {
+  id: string;
+  type: string;
+  message: string;
+  meta: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DashboardAnalytics {
+  generated_at: string;
+  hours: number;
+  economy: Array<{
+    bucket: string;
+    inflow: number | string;
+    outflow: number | string;
+    transactions: number | string;
+  }>;
+  rpg: Array<{
+    bucket: string;
+    players: number | string;
+    reputation: number | string;
+    renown: number | string;
+  }>;
+  battles: Array<{
+    bucket: string;
+    battles: number | string;
+  }>;
+  moderation: Array<{
+    bucket: string;
+    incidents: number | string;
+  }>;
+}
+
+export interface DashboardUserInspector {
+  generated_at: string;
+  user: Record<string, unknown> | null;
+  rpg: Record<string, unknown> | null;
+  inventory: Array<Record<string, unknown>>;
+  equipment: Array<Record<string, unknown>>;
+  skills: Array<Record<string, unknown>>;
+  spells: Array<Record<string, unknown>>;
+  pets: Array<Record<string, unknown>>;
+  transactions: Array<Record<string, unknown>>;
+  moderation: Array<Record<string, unknown>>;
+}
