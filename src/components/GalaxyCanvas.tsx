@@ -191,6 +191,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
   const fxRef = useRef<HTMLCanvasElement | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [hoveredNode, setHoveredNode] = useState<GalaxyNodeId | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const dragOrigin = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const movedDistance = useRef(0);
@@ -365,6 +366,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
   }, [onSelect]);
 
   const beltOrbit = ORBITS[BELT_ORBIT];
+  const depthFocus = hoveredNode ?? focusId;
 
   return (
     <div
@@ -378,7 +380,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
       <canvas ref={farRef} className="galaxy-layer galaxy-layer-far" aria-hidden="true"
         style={{ transform: `translate3d(${pan.x * 0.15}px, ${pan.y * 0.15}px, 0)` }} />
       <div className="galaxy-nebula" aria-hidden="true"
-        style={{ transform: `translate3d(${pan.x * 0.2}px, ${pan.y * 0.2}px, 0)` }}>
+        style={{ transform: `translate3d(${pan.x * 0.2}px, ${pan.y * 0.2}px, 0) scale(${1 + (zoom - 1) * 0.08})` }}>
         <span className="nebula-a" /><span className="nebula-b" />
         <span className="nebula-c" /><span className="nebula-d" />
       </div>
@@ -390,7 +392,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
         style={{ transform: `translate3d(${pan.x * 0.55}px, ${pan.y * 0.55}px, 0)` }} />
 
       <div className="galaxy-system"
-        style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}>
+        style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`, ["--galaxy-depth" as string]: `${Math.min(1.8, Math.max(.6, zoom))}` }}>
         <button type="button" className="galaxy-sun" aria-label="Open ECLIPSE overview" onClick={() => handleNodeClick('overview')}><span className="galaxy-sun-corona" aria-hidden="true" /></button>
 
         <svg className="galaxy-orbits" viewBox="-400 -400 800 800" aria-hidden="true">
@@ -421,12 +423,16 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
           const active = node.id === focusId;
           return (
             <button key={node.id} type="button"
-              className={`galaxy-node ${active ? 'is-active' : ''}`}
+              className={`galaxy-node ${active ? 'is-active' : ''} ${depthFocus === node.id ? 'is-depth-focus' : ''}`}
               style={{
                 transform: `translate3d(${x}px, ${y}px, 0)`,
                 ['--node-color' as string]: node.color,
                 ['--node-size' as string]: `${node.size}px`,
               }}
+              onMouseEnter={() => setHoveredNode(node.id)}
+              onMouseLeave={() => setHoveredNode(null)}
+              onFocus={() => setHoveredNode(node.id)}
+              onBlur={() => setHoveredNode(null)}
               onClick={() => handleNodeClick(node.id)}>
               <span className="galaxy-node-dot" />
               <span className="galaxy-node-label">{node.label}</span>
