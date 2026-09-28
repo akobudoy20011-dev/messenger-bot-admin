@@ -207,6 +207,30 @@ function formatDate(value: string | number | null | undefined) {
     : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+function formatBytes(value: unknown) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes < 0) return '—';
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+}
+
+function formatDuration(seconds: unknown) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  if (days) return days + 'd ' + hours + 'h ' + minutes + 'm';
+  if (hours) return hours + 'h ' + minutes + 'm ' + secs + 's';
+  if (minutes) return minutes + 'm ' + secs + 's';
+  return secs + 's';
+}
+
+function runtimeRecord(value: Record<string, unknown> | null | undefined) {
+  return value || {};
+}
+
 function ModuleDataSurface({
   section,
   snapshot,
@@ -657,6 +681,7 @@ export default function App() {
 
   const selectSection = (id: GalaxyNodeId) => {
     setActiveSection(id);
+    setPanelOpen(true);
     setMobileNavOpen(false);
   };
 
@@ -866,7 +891,7 @@ export default function App() {
         </section>
       ) : (
         <section className="relative z-20 min-h-[calc(100vh-124px)] px-4 pb-8 sm:px-7 lg:px-9">
-          <div className={`command-panel ${activeSection === 'overview' ? 'is-overview' : ''}`}>
+          <div className={`command-panel ${activeSection === 'overview' ? 'is-overview' : ''} ${panelOpen ? 'is-open' : 'is-curtained'}`}>
             <div className="command-panel-inner">
               <div className="mb-6 flex items-start justify-between gap-5">
                 <div>
@@ -978,65 +1003,84 @@ export default function App() {
               {activeSection === 'health' && (
                 <div className="grid gap-4 xl:grid-cols-[1fr_.8fr]">
                   <BotStatusCard state={state} busy={botBusy} onStart={handleStartBot} onStop={handleStopBot} />
-                  <div className="command-surface">
-                    <div className="flex items-center gap-2"><HeartPulse size={17} className="text-[#B9829B]" /><p className="text-[9px] uppercase tracking-[.22em] text-white/28">runtime health</p></div>
-                    <div className="mt-5 space-y-3">
-                      {liveSignals.map((signal) => (
-                        <div key={signal.label} className="flex items-center justify-between border-b border-white/5 pb-3 text-xs last:border-0">
-                          <span className="text-white/38">{signal.label}</span>
-                          <span className={signal.ok ? 'text-[#C8B9D9]' : 'text-white/35'}>{signal.value}</span>
-                        </div>
-                      ))}
-                      <div className="flex items-center justify-between border-b border-white/5 pb-3 text-xs">
-                        <span className="text-white/38">Database</span>
-                        <span className={runtime?.database ? 'text-[#C8B9D9]' : 'text-white/35'}>{runtime?.database ? 'healthy' : 'unavailable'}</span>
+                  <div className="space-y-4">
+                    <div className="command-surface">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2"><HeartPulse size={17} className="text-[#B9829B]" /><div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">runtime health</p><p className="mt-1 text-xs text-white/45">Live process, database and safety telemetry</p></div></div>
+                        <span className={runtime ? "rounded-full border border-[#B9829B]/20 bg-[#B9829B]/10 px-2.5 py-1 text-[9px] uppercase tracking-[.15em] text-[#D8B9C9]" : "rounded-full border border-white/10 px-2.5 py-1 text-[9px] uppercase tracking-[.15em] text-white/30"}>{runtime ? "telemetry live" : "waiting"}</span>
                       </div>
-                      <div className="flex items-center justify-between border-b border-white/5 pb-3 text-xs">
-                        <span className="text-white/38">Watchdog</span>
-                        <span className="text-white/55">{String(runtime?.watchdog?.mode || 'unknown')}</span>
-                      </div>
-                      <div className="flex items-center justify-between border-b border-white/5 pb-3 text-xs">
-                        <span className="text-white/38">Traffic queue</span>
-                        <span className="text-white/55">{formatCount(runtime?.traffic?.queue as number)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-white/38">Uptime</span>
-                        <span className="text-white/55">{Math.floor((runtime?.uptime_seconds || 0) / 3600)}h {Math.floor(((runtime?.uptime_seconds || 0) % 3600) / 60)}m</span>
+                      <div className="mt-5 grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+                        {[
+                          ["Messenger", state.facebook_connected ? "connected" : "offline"],
+                          ["Bot", state.bot_running ? "running" : "paused"],
+                          ["Database", runtime?.database ? "healthy" : "unavailable"],
+                          ["Uptime", formatDuration(runtime?.uptime_seconds)],
+                        ].map(([label, value]) => <div key={label} className="rounded-2xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.15em] text-white/25">{label}</p><p className="mt-1 text-xs text-white/75">{value}</p></div>)}
                       </div>
                     </div>
+
+                    {(() => {
+                      const watchdog = runtimeRecord(runtime?.watchdog);
+                      const traffic = runtimeRecord(runtime?.traffic);
+                      const memory = runtime?.memory || {};
+                      const watchdogOk = watchdog.ok === true;
+                      const watchdogMode = String(watchdog.mode || "unknown");
+                      const queue = Number(traffic.queue || 0);
+                      const queueMax = Number(traffic.queueMax || 0);
+                      const queuePercent = Number(traffic.queuePercent ?? (queueMax ? queue / queueMax * 100 : 0));
+                      return (
+                        <>
+                          <div className="command-surface">
+                            <div className="flex items-center justify-between gap-3">
+                              <div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">watchdog</p><p className="mt-1 text-xs text-white/45">Local event-loop watchdog; Render performs the actual process restart.</p></div>
+                              <span className={watchdogOk ? "text-[#C8B9D9]" : "text-[#D8A9B8]"}>{watchdogOk ? "HEALTHY" : watchdogMode.toUpperCase()}</span>
+                            </div>
+                            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-3">
+                              {[
+                                ["mode", watchdogMode],
+                                ["started", watchdog.started === true ? "yes" : "no"],
+                                ["Messenger link", watchdog.messengerConnected === true ? "connected" : "offline"],
+                                ["failures", String(watchdog.consecutiveFailures ?? 0)],
+                                ["event-loop age", Math.max(0, Math.round(Number(watchdog.eventLoopAgeMs || 0))) + " ms"],
+                                ["last healthy", watchdog.lastHealthyAt ? formatDate(String(watchdog.lastHealthyAt)) : "—"],
+                              ].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.14em] text-white/22">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>)}
+                            </div>
+                          </div>
+
+                          <div className="command-surface">
+                            <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">traffic governor</p><p className="mt-1 text-xs text-white/45">Outgoing queue and rate protection telemetry.</p></div><span className="text-xs text-white/65">{queue} / {queueMax || "—"}</span></div>
+                            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-[#A994C7]" style={{ width: Math.min(100, Math.max(0, queuePercent)) + "%" }} /></div>
+                            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+                              {[
+                                ["mode", String(traffic.mode || "normal")],
+                                ["sends / min", String(traffic.globalSendsLastMinute ?? 0) + " / " + String(traffic.globalLimit ?? "—")],
+                                ["effective gap", String(traffic.effectiveGapMs ?? 0) + " ms"],
+                                ["delayed", String(traffic.totalDelayed ?? 0)],
+                                ["suppressed", String(traffic.totalSuppressed ?? 0)],
+                                ["rejected", String(traffic.totalRejected ?? 0)],
+                                ["duplicates", String(traffic.duplicateBlocked ?? 0)],
+                                ["peak queue", String(traffic.peakQueue ?? 0)],
+                              ].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.14em] text-white/22">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>)}
+                            </div>
+                          </div>
+
+                          <div className="command-surface">
+                            <div className="flex items-center justify-between"><div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">process</p><p className="mt-1 text-xs text-white/45">Node runtime and memory footprint.</p></div><span className="text-xs text-white/55">{runtime?.node_version || "—"}</span></div>
+                            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+                              {[
+                                ["RSS", formatBytes(memory.rss)],
+                                ["heap used", formatBytes(memory.heapUsed)],
+                                ["heap total", formatBytes(memory.heapTotal)],
+                                ["external", formatBytes(memory.external)],
+                              ].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.14em] text-white/22">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>)}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
-              )}
-
-              {activeSection === 'logs' && (
-                <LogsPanel logs={logs} onClear={handleClearLogs} />
-              )}
-
-              {module && telemetry.length > 0 && (
-                <div className="mb-4 grid grid-cols-2 gap-2.5 xl:grid-cols-4">
-                  {telemetry.map(([label, value]) => (
-                    <div key={label} className="signal-card">
-                      <div className="signal-dot is-live" />
-                      <div>
-                        <p className="text-[9px] uppercase tracking-[.18em] text-white/30">{label}</p>
-                        <p className="mt-1 text-sm text-white/80">{value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeSection === 'analytics' && <AnalyticsSurface analytics={analytics} />}
-
-              {activeSection === 'users' && (
-                <div className="mb-4 user-inspector">
-                  <div className="mb-3"><p className="text-[9px] uppercase tracking-[.22em] text-white/25">deep user inspector</p><p className="mt-1 text-xs text-white/40">Messenger identity · economy · RPG · inventory · moderation</p></div>
-                  <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
-                    <input className="eclipse-input" value={inspectorThreadId} onChange={(event) => setInspectorThreadId(event.target.value)} placeholder="thread ID" />
-                    <input className="eclipse-input" value={inspectorUserId} onChange={(event) => setInspectorUserId(event.target.value)} placeholder="user ID" onKeyDown={(event) => { if (event.key === 'Enter') void inspectUser(); }} />
-                    <button className="eclipse-button-secondary" disabled={inspectorBusy} onClick={() => void inspectUser()}>{inspectorBusy ? 'Inspecting…' : 'Inspect'}</button>
-                  </div>
-                  {inspector?.user && <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">{[['balance', inspector.user.balance], ['bank', inspector.user.bank_balance], ['XP', inspector.user.xp], ['level', inspector.user.level], ['games', inspector.user.games_played]].map(([label, value]) => <div key={String(label)} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.15em] text-white/20">{String(label)}</p><p className="mt-1 text-sm text-white/70">{String(value ?? '—')}</p></div>)}</div>}
+              )}ayed]].map(([label, value]) => <div key={String(label)} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.15em] text-white/20">{String(label)}</p><p className="mt-1 text-sm text-white/70">{String(value ?? '—')}</p></div>)}</div>}
                 </div>
               )}
 
@@ -1071,6 +1115,18 @@ export default function App() {
             </div>
           </div>
         </section>
+      )}
+
+      {!panelOpen && dashboardKey && (
+        <button
+          className="panel-curtain-tab pointer-events-auto"
+          onClick={() => setPanelOpen(true)}
+          aria-label="Open command center panel"
+          title="Open command center panel"
+        >
+          <PanelRightOpen size={16} />
+          <span>COMMAND CENTER</span>
+        </button>
       )}
 
       {inspectorOpen && (
