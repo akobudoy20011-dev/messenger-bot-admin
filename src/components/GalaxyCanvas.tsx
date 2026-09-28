@@ -47,7 +47,7 @@ function seededRandom(seed: number) {
   };
 }
 
-interface Star { x: number; y: number; r: number; o: number; glow: boolean; tw: number; }
+interface Star { x: number; y: number; r: number; o: number; glow: boolean; tw: number; }\ninterface MilkyStar { x: number; y: number; r: number; o: number; phase: number; }
 interface Bokeh { x: number; y: number; r: number; o: number; hue: string; }
 interface DistantGalaxy { x: number; y: number; rx: number; ry: number; rot: number; o: number; hue: string; }
 interface Belt { angle: number; jitter: number; r: number; o: number; }
@@ -63,6 +63,44 @@ function buildStars(count: number, seed: number, w: number, h: number): Star[] {
     glow: rand() > 0.9,
     tw: rand() * 6 + 3,
   }));
+}
+
+function buildMilkyWayStars(count: number, seed: number, w: number, h: number): MilkyStar[] {
+  const rand = seededRandom(seed);
+  const stars: MilkyStar[] = [];
+  const centerY = h * 0.47;
+  const bandHeight = Math.max(70, h * 0.18);
+
+  for (let i = 0; i < count; i += 1) {
+    const x = rand() * w;
+    const spread = (rand() + rand() + rand() - 1.5) / 1.5;
+    const y = centerY + spread * bandHeight + Math.sin(x / Math.max(1, w) * Math.PI * 5) * bandHeight * 0.18;
+    stars.push({
+      x,
+      y,
+      r: rand() * 0.65 + 0.18,
+      o: rand() * 0.22 + 0.08,
+      phase: rand() * Math.PI * 2,
+    });
+  }
+  return stars;
+}
+
+function drawMilkyWayBand(ctx: CanvasRenderingContext2D, stars: MilkyStar[], t: number, w: number, h: number) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  for (const star of stars) {
+    const drift = ((t * 0.002) % w);
+    const x = (star.x + drift) % w;
+    const twinkle = 0.78 + Math.sin(t * 0.0012 + star.phase) * 0.22;
+    ctx.globalAlpha = star.o * twinkle;
+    ctx.fillStyle = '#dcd6e7';
+    ctx.beginPath();
+    ctx.arc(x, star.y, star.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 function buildBokeh(count: number, seed: number, w: number, h: number): Bokeh[] {
@@ -191,13 +229,13 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
   const fxRef = useRef<HTMLCanvasElement | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [hoveredNode, setHoveredNode] = useState<GalaxyNodeId | null>(null);
+  const [hoveredNode, setHoveredNode] = useState<GalaxyNodeId | null>(null);\n  const [orbitPhase, setOrbitPhase] = useState(0);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const dragOrigin = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const movedDistance = useRef(0);
   const suppressNextClick = useRef(false);
   const pinch = useRef<{ startDist: number; startZoom: number } | null>(null);
-  const starsRef = useRef<{ far: Star[]; mid: Star[]; near: Star[] }>({ far: [], mid: [], near: [] });
+  const starsRef = useRef<{ far: Star[]; mid: Star[]; near: Star[]; milky: MilkyStar[] }>({ far: [], mid: [], near: [], milky: [] });\n  const dprRef = useRef(1);
   const galaxiesRef = useRef<DistantGalaxy[]>([]);
   const bokehRef = useRef<Bokeh[]>([]);
   const cometsRef = useRef<Comet[]>([]);
@@ -417,7 +455,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
 
         {NODES.map((node) => {
           const orbit = ORBITS[node.orbit];
-          const rad = (node.angle * Math.PI) / 180;
+          const orbitSpeed = [8, -6, 4, -2.5][node.orbit] ?? 0;\n          const rad = ((node.angle + orbitPhase * orbitSpeed) * Math.PI) / 180;
           const x = Math.cos(rad) * orbit.rx;
           const y = Math.sin(rad) * orbit.ry;
           const active = node.id === focusId;
