@@ -70,7 +70,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const frameRef = useRef<number | null>(null);
   const viewRef = useRef({ x: 0, y: 0, zoom: 0.92 });
-  const dragRef = useRef({ active: false, x: 0, y: 0 });
+  const dragRef = useRef({ active: false, x: 0, y: 0, startX: 0, startY: 0 });
   const focusRef = useRef(focusId);
 
   const stars = useMemo(
@@ -301,7 +301,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: Props) {
         ref={canvasRef}
         className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
         onPointerDown={(event) => {
-          dragRef.current = { active: true, x: event.clientX, y: event.clientY };
+          dragRef.current = { active: true, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY };
           event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerMove={(event) => {
