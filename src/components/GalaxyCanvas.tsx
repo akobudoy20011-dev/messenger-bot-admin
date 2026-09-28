@@ -160,7 +160,7 @@ function drawComets(ctx: CanvasRenderingContext2D, comets: Comet[], w: number, h
     const tailX = c.x - c.vx * c.len;
     const tailY = c.y - c.vy * c.len;
     const grad = ctx.createLinearGradient(c.x, c.y, tailX, tailY);
-    grad.addColorStop(0, \`rgba(244,239,248,\${alpha})\`);
+    grad.addColorStop(0, `rgba(244,239,248,${alpha})`);
     grad.addColorStop(1, 'rgba(244,239,248,0)');
     ctx.strokeStyle = grad;
     ctx.lineWidth = 1.6;
@@ -376,27 +376,27 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
       onWheel={onWheel}
     >
       <canvas ref={farRef} className="galaxy-layer galaxy-layer-far" aria-hidden="true"
-        style={{ transform: \`translate3d(\${pan.x * 0.15}px, \${pan.y * 0.15}px, 0)\` }} />
+        style={{ transform: `translate3d(${pan.x * 0.15}px, ${pan.y * 0.15}px, 0)` }} />
       <div className="galaxy-nebula" aria-hidden="true"
-        style={{ transform: \`translate3d(\${pan.x * 0.2}px, \${pan.y * 0.2}px, 0)\` }}>
+        style={{ transform: `translate3d(${pan.x * 0.2}px, ${pan.y * 0.2}px, 0)` }}>
         <span className="nebula-a" /><span className="nebula-b" />
         <span className="nebula-c" /><span className="nebula-d" />
       </div>
       <canvas ref={midRef} className="galaxy-layer galaxy-layer-mid" aria-hidden="true"
-        style={{ transform: \`translate3d(\${pan.x * 0.35}px, \${pan.y * 0.35}px, 0)\` }} />
+        style={{ transform: `translate3d(${pan.x * 0.35}px, ${pan.y * 0.35}px, 0)` }} />
       <canvas ref={fxRef} className="galaxy-layer galaxy-layer-fx" aria-hidden="true"
-        style={{ transform: \`translate3d(\${pan.x * 0.35}px, \${pan.y * 0.35}px, 0)\` }} />
+        style={{ transform: `translate3d(${pan.x * 0.35}px, ${pan.y * 0.35}px, 0)` }} />
       <canvas ref={nearRef} className="galaxy-layer galaxy-layer-near" aria-hidden="true"
-        style={{ transform: \`translate3d(\${pan.x * 0.55}px, \${pan.y * 0.55}px, 0)\` }} />
+        style={{ transform: `translate3d(${pan.x * 0.55}px, ${pan.y * 0.55}px, 0)` }} />
 
       <div className="galaxy-system"
-        style={{ transform: \`translate3d(\${pan.x}px, \${pan.y}px, 0) scale(\${zoom})\` }}>
+        style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` }}>
         <div className="galaxy-sun" aria-hidden="true"><span className="galaxy-sun-corona" /></div>
 
         <svg className="galaxy-orbits" viewBox="-400 -400 800 800" aria-hidden="true">
           {ORBITS.map((orbit, index) => (
             <ellipse key={index} cx="0" cy="0" rx={orbit.rx} ry={orbit.ry}
-              className={\`orbit-ring orbit-ring-\${index}\`} />
+              className={`orbit-ring orbit-ring-${index}`} />
           ))}
           <g className="galaxy-belt">
             {belt.map((point, index) => {
@@ -421,11 +421,11 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
           const active = node.id === focusId;
           return (
             <button key={node.id} type="button"
-              className={\`galaxy-node \${active ? 'is-active' : ''}\`}
+              className={`galaxy-node ${active ? 'is-active' : ''}`}
               style={{
-                transform: \`translate3d(\${x}px, \${y}px, 0)\`,
+                transform: `translate3d(${x}px, ${y}px, 0)`,
                 ['--node-color' as string]: node.color,
-                ['--node-size' as string]: \`\${node.size}px\`,
+                ['--node-size' as string]: `${node.size}px`,
               }}
               onClick={() => handleNodeClick(node.id)}>
               <span className="galaxy-node-dot" />
