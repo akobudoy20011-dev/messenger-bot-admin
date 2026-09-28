@@ -16,7 +16,6 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
-  Sparkles,
   Users,
   X,
 } from 'lucide-react';
