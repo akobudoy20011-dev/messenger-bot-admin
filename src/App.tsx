@@ -311,7 +311,7 @@ function ModuleDataSurface({
 
   if (section === 'rpg') {
     return (
-      <div className="grid gap-4 xl:grid-cols-[.75fr_.75fr_1.5fr]">
+      <div className="grid gap-4 xl:grid-cols-[.7fr_.7fr_.8fr_1.4fr]">
         <div className="command-surface">
           <p className="text-[9px] uppercase tracking-[.22em] text-white/25">classes</p>
           <div className="mt-4 space-y-2">{snapshot.rpg.classes.map((item) => (
@@ -323,6 +323,28 @@ function ModuleDataSurface({
           <div className="mt-4 space-y-2">{snapshot.rpg.regions.map((item) => (
             <div key={item.region_id} className="flex justify-between text-xs"><span className="text-white/55">{item.region_id}</span><span className="text-white/80">{formatCount(item.count)}</span></div>
           ))}</div>
+        </div>
+        <div className="command-surface">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] uppercase tracking-[.22em] text-white/25">guilds</p>
+            <span className="text-[9px] text-white/25">{formatCount(snapshot.guilds.guilds)}</span>
+          </div>
+          <div className="mt-4 space-y-2">
+            {snapshot.guilds.recent_guilds.length ? snapshot.guilds.recent_guilds.map((guild) => (
+              <div key={String(guild.id)} className="rounded-xl border border-white/5 bg-white/[.02] px-2.5 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[10px] text-white/65">{guild.name}</span>
+                  <span className="text-[9px] text-white/35">Lv {formatCount(guild.level)}</span>
+                </div>
+                <div className="mt-1 flex justify-between text-[8px] text-white/20">
+                  <span>{formatCount(guild.members)} members</span>
+                  <span>{formatCount(guild.treasury)} treasury</span>
+                </div>
+              </div>
+            )) : (
+              <div className="text-[9px] leading-5 text-white/25">No guild records returned yet.</div>
+            )}
+          </div>
         </div>
         <div className="command-surface overflow-hidden">
           <div className="mb-4 flex items-center justify-between"><p className="text-[9px] uppercase tracking-[.22em] text-white/25">progression feed</p><span className="text-[10px] text-white/30">{formatCount(snapshot.rpg.players)} players</span></div>
