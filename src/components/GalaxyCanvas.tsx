@@ -282,13 +282,13 @@ export default function GalaxyCanvas({ focusId, onSelect }: Props) {
     let hit: GalaxyNode | null = null;
     let distance = Infinity;
 
-    NODES.forEach((node) => {
+    for (const node of NODES) {
       const d = Math.hypot(point.x - node.x, point.y - node.y);
       if (d < node.radius + 22 / viewRef.current.zoom && d < distance) {
         hit = node;
         distance = d;
       }
-    });
+    }
 
     if (hit) {
       onSelect(hit.id);
