@@ -1099,9 +1099,7 @@ export default function App() {
                     })()}
                   </div>
                 </div>
-              )}ayed]].map(([label, value]) => <div key={String(label)} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.15em] text-white/20">{String(label)}</p><p className="mt-1 text-sm text-white/70">{String(value ?? '—')}</p></div>)}</div>}
-                </div>
-              )}
+
 
               {activeSection !== 'analytics' && module && (
                 <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
