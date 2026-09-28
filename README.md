@@ -42,7 +42,7 @@ ECLIPSE
     └── Settings
 ```
 
-The current frontend consumes the existing dashboard status/control API. New analytics/RPG/economy read endpoints should be added to the bot API incrementally rather than duplicating game logic in the dashboard.
+The current frontend consumes the protected dashboard status/control API plus the read-only `/api/dashboard/snapshot` endpoint. The Messenger bot and Neon/Postgres remain the source of truth; the dashboard only renders and controls that data.
 
 ## Run
 
