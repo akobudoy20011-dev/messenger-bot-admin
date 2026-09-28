@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Facebook, FileJson, RefreshCw, ShieldCheck, UserCircle2, Wifi, WifiOff } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import type { BotState } from '@/types';
@@ -6,8 +7,53 @@ interface ConnectionCardProps {
   state: BotState;
   busy: boolean;
   onConnectSession: (file: File) => void;
+  onConnectRawCookie: (cookieHeader: string) => void;
   onReconnect: () => void;
   onDisconnect: () => void;
+}
+
+interface RawCookieInputProps {
+  busy: boolean;
+  onSubmit: (cookieHeader: string) => void;
+}
+
+function RawCookieInput({ busy, onSubmit }: RawCookieInputProps) {
+  const [value, setValue] = useState('');
+
+  const submit = () => {
+    const cookie = value.trim();
+    if (!cookie || busy) return;
+    onSubmit(cookie);
+    setValue('');
+  };
+
+  return (
+    <div className="space-y-3">
+      <textarea
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        disabled={busy}
+        spellCheck={false}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="none"
+        placeholder="c_user=…; xs=…; fr=…"
+        className="min-h-24 w-full resize-y rounded-2xl border border-coquette-200 bg-white/80 px-4 py-3 font-mono text-xs text-coquette-800 outline-none transition focus:border-coquette-400 focus:ring-2 focus:ring-coquette-100 disabled:opacity-60"
+      />
+      <button
+        type="button"
+        onClick={submit}
+        disabled={busy || !value.trim()}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-coquette-200 bg-white px-4 py-3 text-sm font-semibold text-coquette-700 transition hover:border-coquette-300 hover:bg-coquette-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <ShieldCheck size={16} />
+        {busy ? 'Connecting…' : 'Connect with cookie'}
+      </button>
+      <p className="text-[11px] leading-relaxed text-coquette-400">
+        Paste the browser cookie header exactly as copied. It is sent directly to ECLIPSE for this connection attempt and is cleared from this form after submission.
+      </p>
+    </div>
+  );
 }
 
 function formatTime(ts: string | null): string {
@@ -25,6 +71,7 @@ export default function ConnectionCard({
   state,
   busy,
   onConnectSession,
+  onConnectRawCookie,
   onReconnect,
   onDisconnect,
 }: ConnectionCardProps) {
@@ -102,6 +149,14 @@ export default function ConnectionCard({
               }}
             />
           </label>
+
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-coquette-100" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-coquette-300">or paste raw cookie</span>
+            <div className="h-px flex-1 bg-coquette-100" />
+          </div>
+
+          <RawCookieInput busy={busy} onSubmit={onConnectRawCookie} />
 
           <div className="mt-3 space-y-1 text-[11px] leading-relaxed text-coquette-400">
             <p>Accepted: cookie arrays, wrapped exports, or a cookie-header text file.</p>
