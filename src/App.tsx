@@ -1099,7 +1099,7 @@ export default function App() {
                     })()}
                   </div>
                 </div>
-
+              )}
 
               {activeSection !== 'analytics' && module && (
                 <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
