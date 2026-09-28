@@ -47,7 +47,8 @@ function seededRandom(seed: number) {
   };
 }
 
-interface Star { x: number; y: number; r: number; o: number; glow: boolean; tw: number; }\ninterface MilkyStar { x: number; y: number; r: number; o: number; phase: number; }
+interface Star { x: number; y: number; r: number; o: number; glow: boolean; tw: number; }
+interface MilkyStar { x: number; y: number; r: number; o: number; phase: number; }
 interface Bokeh { x: number; y: number; r: number; o: number; hue: string; }
 interface DistantGalaxy { x: number; y: number; rx: number; ry: number; rot: number; o: number; hue: string; }
 interface Belt { angle: number; jitter: number; r: number; o: number; }
@@ -229,13 +230,15 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
   const fxRef = useRef<HTMLCanvasElement | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [hoveredNode, setHoveredNode] = useState<GalaxyNodeId | null>(null);\n  const [orbitPhase, setOrbitPhase] = useState(0);
+  const [hoveredNode, setHoveredNode] = useState<GalaxyNodeId | null>(null);
+  const [orbitPhase, setOrbitPhase] = useState(0);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const dragOrigin = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const movedDistance = useRef(0);
   const suppressNextClick = useRef(false);
   const pinch = useRef<{ startDist: number; startZoom: number } | null>(null);
-  const starsRef = useRef<{ far: Star[]; mid: Star[]; near: Star[]; milky: MilkyStar[] }>({ far: [], mid: [], near: [], milky: [] });\n  const dprRef = useRef(1);
+  const starsRef = useRef<{ far: Star[]; mid: Star[]; near: Star[]; milky: MilkyStar[] }>({ far: [], mid: [], near: [], milky: [] });
+  const dprRef = useRef(1);
   const galaxiesRef = useRef<DistantGalaxy[]>([]);
   const bokehRef = useRef<Bokeh[]>([]);
   const cometsRef = useRef<Comet[]>([]);
