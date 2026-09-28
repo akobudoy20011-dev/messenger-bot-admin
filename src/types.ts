@@ -31,6 +31,17 @@ export interface DashboardSnapshot {
     total_xp: number | string;
     games_played: number | string;
     wins: number | string;
+    recent_users: Array<{
+      thread_id: string;
+      user_id: string;
+      display_name: string | null;
+      balance: number | string;
+      bank_balance: number | string;
+      xp: number | string;
+      level: number | string;
+      games_played: number | string;
+      wins: number | string;
+    }>;
   };
   economy: {
     transaction_count: number | string;
@@ -53,6 +64,15 @@ export interface DashboardSnapshot {
     property_holders: number | string;
     reputation: number | string;
     renown: number | string;
+    inventory_items: number | string;
+    equipment: number | string;
+    pets: number | string;
+    active_combat: number | string;
+    active_dungeons: number | string;
+    battles_24h: number | string;
+    active_world_bosses: number | string;
+    active_guild_raids: number | string;
+    active_world_events: number | string;
     classes: Array<{ character_class: string; count: number | string }>;
     regions: Array<{ region_id: string; count: number | string }>;
     recent_players: Array<{
@@ -72,12 +92,34 @@ export interface DashboardSnapshot {
     members: number | string;
     treasury: number | string;
     experience: number | string;
+    recent_guilds: Array<{
+      id: number | string;
+      thread_id: string;
+      guild_id: string;
+      name: string;
+      level: number | string;
+      treasury: number | string;
+      experience: number | string;
+      members: number | string;
+    }>;
   };
   moderation: {
     active_warnings: number | string;
     active_bans: number | string;
     active_mutes: number | string;
     incidents_24h: number | string;
+    recent_incidents: Array<{
+      id: number | string;
+      thread_id: string;
+      user_id: string;
+      category: string;
+      severity: number | string;
+      confidence: number | string;
+      suggested_action: string;
+      action: string;
+      reason: string | null;
+      created_at: number | string;
+    }>;
   };
   games: {
     games_played: number | string;
@@ -93,5 +135,5 @@ export interface DashboardRuntime {
   uptime_seconds: number;
   node_version: string;
   memory: Record<string, number>;
+  database: boolean | null;
 }
-
