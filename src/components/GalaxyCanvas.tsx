@@ -218,6 +218,8 @@ export interface GalaxyCanvasProps {
 const DRAG_THRESHOLD = 6;
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 1.8;
+const MAX_DPR = 3;
+const PIXEL_BUDGET = 7_000_000;
 
 function pointerDistance(a: { x: number; y: number }, b: { x: number; y: number }) {
   return Math.hypot(a.x - b.x, a.y - b.y);
