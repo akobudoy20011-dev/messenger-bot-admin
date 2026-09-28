@@ -253,16 +253,24 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
     const resize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
+      const nativeDpr = Math.min(window.devicePixelRatio || 1, 3);
+      const budgetDpr = Math.sqrt(7000000 / Math.max(1, w * h));
+      const dpr = Math.max(1, Math.min(nativeDpr, budgetDpr));
+      dprRef.current = dpr;
       canvases.forEach((canvas) => {
         if (canvas) {
-          canvas.width = w;
-          canvas.height = h;
+          canvas.width = Math.max(1, Math.round(w * dpr));
+          canvas.height = Math.max(1, Math.round(h * dpr));
+          canvas.style.width = `${w}px`;
+          canvas.style.height = `${h}px`;
+          canvas.getContext('2d')?.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
       });
       starsRef.current = {
-        far: buildStars(180, 11, w, h),
-        mid: buildStars(90, 29, w, h),
-        near: buildStars(40, 53, w, h),
+        far: buildStars(360, 11, w, h),
+        mid: buildStars(180, 29, w, h),
+        near: buildStars(80, 53, w, h),
+        milky: buildMilkyWayStars(360, 71, w, h),
       };
       galaxiesRef.current = buildDistantGalaxies(6, 41, w, h);
       bokehRef.current = buildBokeh(10, 63, w, h);
@@ -272,6 +280,7 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
     window.addEventListener('resize', resize);
     let raf = 0;
     let running = true;
+    let lastOrbitT = performance.now();
 
     const spawnComet = (w: number, h: number) => {
       const fromLeft = Math.random() > 0.5;
@@ -298,12 +307,18 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
         far.clearRect(0, 0, w, h);
         drawDistantGalaxies(far, galaxiesRef.current);
         drawStarLayer(far, starsRef.current.far, t, w, h);
+        drawBrightStarSpikes(far, starsRef.current.far);
+        drawMilkyWayBand(far, starsRef.current.milky, t, w);
       }
-      if (mid) drawStarLayer(mid, starsRef.current.mid, t, w, h);
+      if (mid) {
+        drawStarLayer(mid, starsRef.current.mid, t, w, h);
+        drawBrightStarSpikes(mid, starsRef.current.mid);
+      }
       if (near) {
         near.clearRect(0, 0, w, h);
         drawBokeh(near, bokehRef.current);
         drawStarLayer(near, starsRef.current.near, t, w, h);
+        drawBrightStarSpikes(near, starsRef.current.near);
       }
       if (fx) {
         if (!reducedMotion) {
@@ -320,7 +335,12 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
         }
         drawComets(fx, cometsRef.current, w, h);
       }
-      if (!reducedMotion) raf = requestAnimationFrame(loop);
+      if (!reducedMotion) {
+        const dt = Math.min(64, Math.max(0, t - lastOrbitT));
+        lastOrbitT = t;
+        setOrbitPhase((phase) => phase + dt * 0.001);
+        raf = requestAnimationFrame(loop);
+      }
     };
 
     raf = requestAnimationFrame(loop);
