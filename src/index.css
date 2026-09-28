@@ -859,6 +859,118 @@ button {
 }
 
 
+/* Deep-space depth pass */
+.galaxy-root {
+  perspective: 1200px;
+  perspective-origin: 50% 44%;
+}
+
+.galaxy-nebula {
+  transform-style: preserve-3d;
+  filter: saturate(.92);
+}
+
+.galaxy-nebula::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 38%, rgba(185,130,155,.08), transparent 26%),
+    radial-gradient(ellipse at 78% 62%, rgba(143,176,210,.07), transparent 24%),
+    linear-gradient(118deg, transparent 34%, rgba(169,148,199,.035) 47%, transparent 61%);
+  filter: blur(22px);
+  mix-blend-mode: screen;
+  animation: galaxy-dust-drift 48s ease-in-out infinite alternate;
+}
+
+.galaxy-layer-far { opacity: .72; }
+.galaxy-layer-mid { opacity: .82; }
+.galaxy-layer-near { opacity: .92; }
+
+.galaxy-system {
+  transform-style: preserve-3d;
+  --depth-scale: calc(var(--galaxy-depth) * 1px);
+}
+
+.galaxy-system::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 520px;
+  height: 520px;
+  margin: -260px 0 0 -260px;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(169,148,199,.075) 0 10%, rgba(169,148,199,.025) 28%, transparent 68%);
+  filter: blur(12px);
+  transform: translateZ(-40px) scale(calc(.92 + var(--galaxy-depth) * .04));
+}
+
+.galaxy-orbits {
+  transform: translateZ(-2px);
+}
+
+.orbit-ring {
+  filter: drop-shadow(0 0 4px rgba(169,148,199,.12));
+}
+
+.galaxy-node {
+  transform-style: preserve-3d;
+}
+
+.galaxy-node-dot {
+  position: relative;
+  transform: translateZ(10px);
+}
+
+.galaxy-node-label {
+  transform: translate3d(-50%, 0, 18px);
+}
+
+.galaxy-node:hover .galaxy-node-label,
+.galaxy-node.is-active .galaxy-node-label,
+.galaxy-node.is-depth-focus .galaxy-node-label {
+  transform: translate3d(-50%, -1px, 26px);
+}
+
+.galaxy-node.is-depth-focus .galaxy-node-dot {
+  animation: depth-pulse 2.4s ease-in-out infinite;
+}
+
+.galaxy-sun {
+  transform: translateZ(24px);
+  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s ease;
+}
+
+.galaxy-sun:hover {
+  transform: translateZ(34px) scale(1.045);
+  box-shadow:
+    0 0 30px rgba(244,239,248,.6),
+    0 0 90px rgba(169,148,199,.34),
+    0 0 160px rgba(185,130,155,.2);
+}
+
+@keyframes galaxy-dust-drift {
+  0% { transform: translate3d(-1%, 0, 0) rotate(-1deg) scale(1); }
+  100% { transform: translate3d(1.5%, -1%, 0) rotate(1deg) scale(1.035); }
+}
+
+@keyframes depth-pulse {
+  0%, 100% { transform: translateZ(10px) scale(1); }
+  50% { transform: translateZ(18px) scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-nebula::after,
+  .galaxy-node.is-depth-focus .galaxy-node-dot {
+    animation: none !important;
+  }
+  .galaxy-sun { transition: none !important; }
+}
+
 /* ECLIPSE UI/UX Pro Max interaction layer */
 :where(button, a, input, textarea, select):focus-visible {
   outline: 2px solid rgba(185,130,155,.78);
