@@ -311,7 +311,7 @@ function ModuleDataSurface({
 
   if (section === 'rpg') {
     return (
-      <div className="grid gap-4 xl:grid-cols-[.75fr_.75fr_1.5fr]">
+      <div className="grid gap-4 xl:grid-cols-[.7fr_.7fr_.8fr_1.4fr]">
         <div className="command-surface">
           <p className="text-[9px] uppercase tracking-[.22em] text-white/25">classes</p>
           <div className="mt-4 space-y-2">{snapshot.rpg.classes.map((item) => (
@@ -323,6 +323,28 @@ function ModuleDataSurface({
           <div className="mt-4 space-y-2">{snapshot.rpg.regions.map((item) => (
             <div key={item.region_id} className="flex justify-between text-xs"><span className="text-white/55">{item.region_id}</span><span className="text-white/80">{formatCount(item.count)}</span></div>
           ))}</div>
+        </div>
+        <div className="command-surface">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] uppercase tracking-[.22em] text-white/25">guilds</p>
+            <span className="text-[9px] text-white/25">{formatCount(snapshot.guilds.guilds)}</span>
+          </div>
+          <div className="mt-4 space-y-2">
+            {snapshot.guilds.recent_guilds.length ? snapshot.guilds.recent_guilds.map((guild) => (
+              <div key={String(guild.id)} className="rounded-xl border border-white/5 bg-white/[.02] px-2.5 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[10px] text-white/65">{guild.name}</span>
+                  <span className="text-[9px] text-white/35">Lv {formatCount(guild.level)}</span>
+                </div>
+                <div className="mt-1 flex justify-between text-[8px] text-white/20">
+                  <span>{formatCount(guild.members)} members</span>
+                  <span>{formatCount(guild.treasury)} treasury</span>
+                </div>
+              </div>
+            )) : (
+              <div className="text-[9px] leading-5 text-white/25">No guild records returned yet.</div>
+            )}
+          </div>
         </div>
         <div className="command-surface overflow-hidden">
           <div className="mb-4 flex items-center justify-between"><p className="text-[9px] uppercase tracking-[.22em] text-white/25">progression feed</p><span className="text-[10px] text-white/30">{formatCount(snapshot.rpg.players)} players</span></div>
@@ -409,6 +431,102 @@ function ModuleDataSurface({
   }
 
   return null;
+}
+
+
+function ModuleSignalRail({
+  section,
+  state,
+  snapshot,
+  runtime,
+  eventCount,
+}: {
+  section: GalaxyNodeId;
+  state: BotState;
+  snapshot: DashboardSnapshot | null;
+  runtime: DashboardRuntime | null;
+  eventCount: number;
+}) {
+  const signals: Array<[string, string, string]> = [];
+
+  if (section === 'messenger') {
+    signals.push(
+      ['Messenger', state.facebook_connected ? 'Connected' : 'Offline', 'session'],
+      ['Bot', state.bot_running ? 'Running' : 'Paused', 'process'],
+      ['Live events', formatCount(eventCount), 'stream'],
+      ['Last update', formatDate(state.updated_at), 'runtime'],
+    );
+  } else if (section === 'users' && snapshot) {
+    signals.push(
+      ['Participants', formatCount(snapshot.users.total_users), 'identity'],
+      ['Funded', formatCount(snapshot.users.funded_users), 'wallet'],
+      ['Total XP', formatCount(snapshot.users.total_xp), 'progression'],
+      ['Games played', formatCount(snapshot.users.games_played), 'activity'],
+    );
+  } else if (section === 'economy' && snapshot) {
+    signals.push(
+      ['Wallet', formatCount(snapshot.users.wallet_circulation), 'circulation'],
+      ['Bank', formatCount(snapshot.users.bank_circulation), 'circulation'],
+      ['Inflow', formatCount(snapshot.economy.inflow), 'ledger'],
+      ['Outflow', formatCount(snapshot.economy.outflow), 'ledger'],
+    );
+  } else if (section === 'rpg' && snapshot) {
+    signals.push(
+      ['Players', formatCount(snapshot.rpg.players), 'world'],
+      ['Active', formatCount(snapshot.rpg.active_players), 'activity'],
+      ['Combat', formatCount(snapshot.rpg.active_combat), 'battle'],
+      ['World bosses', formatCount(snapshot.rpg.active_world_bosses), 'threat'],
+      ['Guild raids', formatCount(snapshot.rpg.active_guild_raids), 'guild'],
+      ['Events', formatCount(snapshot.rpg.active_world_events), 'world event'],
+    );
+  } else if (section === 'games' && snapshot) {
+    const plays = toNumber(snapshot.games.games_played);
+    const wins = toNumber(snapshot.games.wins);
+    signals.push(
+      ['Plays', formatCount(plays), 'all games'],
+      ['Wins', formatCount(wins), 'all games'],
+      ['Players', formatCount(snapshot.games.players_with_games), 'participants'],
+      ['Win rate', plays ? ((wins / plays) * 100).toFixed(1) + '%' : '0.0%', 'derived'],
+    );
+  } else if (section === 'moderation' && snapshot) {
+    signals.push(
+      ['Incidents 24h', formatCount(snapshot.moderation.incidents_24h), 'watch'],
+      ['Warnings', formatCount(snapshot.moderation.active_warnings), 'active'],
+      ['Mutes', formatCount(snapshot.moderation.active_mutes), 'active'],
+      ['Bans', formatCount(snapshot.moderation.active_bans), 'active'],
+    );
+  } else if (section === 'music') {
+    const music = runtime?.music || {};
+    signals.push(
+      ['Active jobs', formatCount(music.activeJobs as number), 'runtime'],
+      ['Pending', formatCount(music.pendingJobs as number), 'queue'],
+      ['Downloads', formatCount(music.activeDownloads as number), 'transfer'],
+      ['Tracked GCs', formatCount(music.trackedGCs as number), 'runtime'],
+    );
+  } else if (section === 'health') {
+    signals.push(
+      ['Database', runtime?.database ? 'Healthy' : 'Unavailable', 'runtime'],
+      ['Uptime', formatDuration(runtime?.uptime_seconds), 'process'],
+      ['Node', runtime?.node_version || '—', 'runtime'],
+      ['RSS', formatBytes(runtime?.memory?.rss), 'memory'],
+    );
+  } else {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-2.5 md:grid-cols-4" aria-label="Module signal summary">
+      {signals.slice(0, 4).map(([label, value, context]) => (
+        <div key={label} className="signal-card min-h-[74px]">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-[9px] uppercase tracking-[.15em] text-white/25">{label}</p>
+            <span className="text-[8px] uppercase tracking-[.12em] text-white/15">{context}</span>
+          </div>
+          <p className="mt-2 truncate text-sm font-medium text-white/78" title={value}>{value}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function App() {
@@ -1010,6 +1128,10 @@ export default function App() {
                   </div>
                   <div className="mt-4"><LiveEventFeed events={events} /></div>
                 </>
+              )}
+
+              {activeSection !== 'overview' && activeSection !== 'analytics' && activeSection !== 'logs' && activeSection !== 'settings' && (
+                <ModuleSignalRail section={activeSection} state={state} snapshot={snapshot} runtime={runtime} eventCount={events.length} />
               )}
 
               {activeSection === 'messenger' && (

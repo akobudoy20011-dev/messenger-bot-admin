@@ -6,6 +6,21 @@
   color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  --eclipse-canvas: #050509;
+  --eclipse-surface: #08070c;
+  --eclipse-elevated: #0d0a12;
+  --eclipse-text: #f4eff8;
+  --eclipse-text-secondary: rgba(216,210,227,.68);
+  --eclipse-text-muted: rgba(216,210,227,.38);
+  --eclipse-border: rgba(216,210,227,.08);
+  --eclipse-border-strong: rgba(216,210,227,.14);
+  --eclipse-lilac: #a994c7;
+  --eclipse-rose: #b9829b;
+  --eclipse-deep-rose: #7a3949;
+  --eclipse-blue: #8fb0d2;
+  --eclipse-success: #7db59a;
+  --eclipse-warning: #d3a96b;
+  --eclipse-danger: #c77c87;
 }
 
 html {
@@ -670,6 +685,10 @@ button {
 }
 
 .galaxy-sun {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   position: absolute;
   left: 0; top: 0;
   width: 92px; height: 92px;
@@ -700,6 +719,11 @@ button {
 .galaxy-sun::after {
   inset: -24px;
   background: radial-gradient(circle, rgba(169,148,199,.11), transparent 68%);
+}
+
+.galaxy-sun:focus-visible {
+  outline: 2px solid rgba(244,239,248,.8);
+  outline-offset: 8px;
 }
 
 .galaxy-sun-corona {
@@ -832,4 +856,67 @@ button {
   .galaxy-node-label { font-size: 8px; letter-spacing: .08em; }
   .galaxy-sun { width: 78px; height: 78px; margin: -39px 0 0 -39px; }
   .galaxy-sun-corona { width: 78px; height: 78px; margin: -39px 0 0 -39px; }
+}
+
+
+/* ECLIPSE UI/UX Pro Max interaction layer */
+:where(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid rgba(185,130,155,.78);
+  outline-offset: 3px;
+}
+
+:where(button, a):disabled {
+  cursor: not-allowed;
+}
+
+.command-surface,
+.signal-card,
+.module-tile,
+.user-inspector {
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.command-surface:hover {
+  border-color: rgba(216,210,227,.12);
+}
+
+.data-state {
+  border: 1px dashed rgba(216,210,227,.1);
+  border-radius: 18px;
+  background: rgba(255,255,255,.018);
+  padding: 18px;
+}
+
+.data-state strong {
+  display: block;
+  color: rgba(244,239,248,.78);
+  font-size: 12px;
+}
+
+.data-state span {
+  display: block;
+  margin-top: 5px;
+  color: rgba(216,210,227,.36);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .command-panel-inner {
+    padding: 16px;
+  }
+
+  .command-surface {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .signal-card {
+    padding: 10px;
+  }
+
+  .nav-chip {
+    min-height: 44px;
+    padding-inline: 11px;
+  }
 }
