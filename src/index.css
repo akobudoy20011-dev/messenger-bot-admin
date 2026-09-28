@@ -463,3 +463,10 @@ button {
   background: rgba(255,255,255,.025);
   padding: 16px;
 }
+
+
+/* Private Messenger session field */
+.cookie-secret {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
