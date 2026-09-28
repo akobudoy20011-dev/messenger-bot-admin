@@ -42,7 +42,7 @@ ECLIPSE
     └── Settings
 ```
 
-The current frontend consumes the protected dashboard status/control API plus the read-only `/api/dashboard/snapshot` endpoint. The Messenger bot and Neon/Postgres remain the source of truth; the dashboard only renders and controls that data.
+The current frontend consumes the protected dashboard status/control API plus the read-only `/api/dashboard/snapshot`, `/api/dashboard/user`, `/api/dashboard/analytics`, `/api/dashboard/events` and authenticated SSE `/api/dashboard/events/stream` endpoints. It also exposes a keyboard command palette, deep user inspector, historical analytics, live event feed and safe music queue controls. The Messenger bot and Neon/Postgres remain the source of truth; the dashboard only renders and controls that data.
 
 ## Run
 
