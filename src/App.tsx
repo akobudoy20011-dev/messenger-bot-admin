@@ -417,11 +417,13 @@ function ModuleSignalRail({
   state,
   snapshot,
   runtime,
+  eventCount,
 }: {
   section: GalaxyNodeId;
   state: BotState;
   snapshot: DashboardSnapshot | null;
   runtime: DashboardRuntime | null;
+  eventCount: number;
 }) {
   const signals: Array<[string, string, string]> = [];
 
@@ -429,7 +431,7 @@ function ModuleSignalRail({
     signals.push(
       ['Messenger', state.facebook_connected ? 'Connected' : 'Offline', 'session'],
       ['Bot', state.bot_running ? 'Running' : 'Paused', 'process'],
-      ['Live events', formatCount(0), 'stream'],
+      ['Live events', formatCount(eventCount), 'stream'],
       ['Last update', formatDate(state.updated_at), 'runtime'],
     );
   } else if (section === 'users' && snapshot) {
@@ -1107,7 +1109,7 @@ export default function App() {
               )}
 
               {activeSection !== 'overview' && activeSection !== 'analytics' && activeSection !== 'logs' && activeSection !== 'settings' && (
-                <ModuleSignalRail section={activeSection} state={state} snapshot={snapshot} runtime={runtime} />
+                <ModuleSignalRail section={activeSection} state={state} snapshot={snapshot} runtime={runtime} eventCount={events.length} />
               )}
 
               {activeSection === 'messenger' && (
