@@ -1032,3 +1032,58 @@ button {
     padding-inline: 11px;
   }
 }
+
+
+/* High-resolution observatory pass */
+.galaxy-root::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: 5;
+  pointer-events: none;
+  opacity: .5;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(ellipse at 18% 52%, transparent 0 18%, rgba(169,148,199,.045) 28%, transparent 42%),
+    radial-gradient(ellipse at 74% 36%, transparent 0 20%, rgba(185,130,155,.035) 30%, transparent 46%),
+    repeating-linear-gradient(117deg, transparent 0 18px, rgba(244,239,248,.012) 19px, transparent 21px 42px);
+  filter: blur(9px);
+  transform: translateZ(-10px) rotate(-2deg);
+  animation: galaxy-filament-drift 58s ease-in-out infinite alternate;
+}
+
+.galaxy-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  pointer-events: none;
+  opacity: .16;
+  background:
+    radial-gradient(circle at 17% 31%, rgba(255,255,255,.18) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 73% 67%, rgba(255,255,255,.14) 0 .8px, transparent 1.2px),
+    radial-gradient(circle at 41% 82%, rgba(216,210,227,.12) 0 .7px, transparent 1.1px);
+  background-size: 47px 53px, 61px 67px, 83px 79px;
+  mix-blend-mode: screen;
+}
+
+.galaxy-nebula::after {
+  background:
+    radial-gradient(ellipse at 14% 42%, rgba(185,130,155,.1), transparent 22%),
+    radial-gradient(ellipse at 79% 57%, rgba(143,176,210,.085), transparent 21%),
+    radial-gradient(ellipse at 54% 24%, rgba(169,148,199,.06), transparent 26%),
+    repeating-linear-gradient(123deg, transparent 0 11px, rgba(216,210,227,.018) 12px, transparent 14px 29px),
+    linear-gradient(118deg, transparent 31%, rgba(169,148,199,.045) 46%, transparent 63%);
+  filter: blur(18px);
+}
+
+@keyframes galaxy-filament-drift {
+  0% { transform: translate3d(-1.5%, .5%, 0) rotate(-2deg) scale(1); }
+  100% { transform: translate3d(1.5%, -1%, 0) rotate(1.5deg) scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-root::before {
+    animation: none !important;
+  }
+}
