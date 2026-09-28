@@ -1,54 +1,74 @@
-# Messenger Bot Admin
+# ECLIPSE · Command Center
 
-A private admin dashboard for managing a Node.js Messenger (Facebook) bot.
+Private control center for the ECLIPSE Messenger bot.
 
-## Features
+## What changed
 
-- **Facebook Connection** — view connection status, reconnect, disconnect, upload a session, or submit Facebook credentials directly to ECLIPSE
-- **Session Status** — monitor active chat session state
-- **Bot Controls** — start and stop the bot runtime
-- **Activity Logs** — local, color-coded dashboard activity logs
-- **Coquette pink/lilac UI** — glassmorphism design with animations
+The dashboard is intentionally **not** a generic admin template anymore. It is a private ECLIPSE operating surface built around a navigable galaxy.
 
-## Tech Stack
+- Interactive galaxy background: drag to pan, scroll to zoom, and tap/double-click constellations.
+- Constellations map to ECLIPSE systems: Messenger, Users, Economy, RPG, Games, Moderation, Music, Analytics, Logs, Bot Health and Settings.
+- Selecting a constellation expands its command surface while the galaxy remains visible behind it.
+- Dark editorial/celestial visual system using void black, moon white, dusty rose, lilac and eclipse red.
+- Existing Facebook session connection, reconnect/disconnect, bot start/stop and local activity logs remain available.
+- The RPG surface is shaped around the existing ECLIPSE engine: world, classes, skills, spells, guilds, companions, forge, kingdoms, armies and bosses.
 
-- React + TypeScript + Vite
-- Tailwind CSS
-- lucide-react
+## Architecture direction
 
-## Getting Started
+The dashboard is the presentation/control layer. The Messenger bot remains the source of truth for runtime state and Neon/Postgres remains the persistent game/economy store.
 
-1. Clone the repo and install dependencies:
+```text
+ECLIPSE
+├── Messenger runtime
+├── Command router
+├── RPG engine
+├── Economy
+├── Games
+├── Moderation
+├── Music
+├── Neon/Postgres
+└── Command Center
+    ├── Overview
+    ├── Messenger
+    ├── Users
+    ├── Economy
+    ├── RPG
+    ├── Games
+    ├── Moderation
+    ├── Music
+    ├── Analytics
+    ├── Logs
+    ├── Bot Health
+    └── Settings
+```
+
+The current frontend consumes the protected dashboard status/control API plus the read-only `/api/dashboard/snapshot`, `/api/dashboard/user`, `/api/dashboard/analytics`, `/api/dashboard/events` and authenticated SSE `/api/dashboard/events/stream` endpoints. It also exposes a keyboard command palette, deep user inspector, historical analytics, live event feed and safe music queue controls. The Messenger bot and Neon/Postgres remain the source of truth; the dashboard only renders and controls that data.
+
+## Run
 
 ```bash
 npm install
+npm run dev
 ```
 
-2. Configure the ECLIPSE bot API URL:
+Configure:
 
 ```env
 VITE_ECLIPSE_API_URL=https://your-eclipse-bot.onrender.com
 ```
 
-3. Start the dev server:
+The dashboard key is kept in browser session storage for the active session.
+
+## Render
+
+Build:
 
 ```bash
-npm run dev
+npm install && npm run build
 ```
 
-For Render, use:
+Start:
 
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
-
-The dashboard does not require a Supabase project or Supabase environment variables.
-
-## Runtime Connection
-
-The dashboard talks directly to the ECLIPSE bot API. The dashboard access key is entered in the browser and kept in session storage for the current browser session.
-
-Facebook credentials are sent directly to ECLIPSE over HTTPS and are not stored in the dashboard.
-
-## License
-
-Private project.
+```bash
+npm start
+```
