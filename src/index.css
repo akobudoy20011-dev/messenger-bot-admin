@@ -685,6 +685,10 @@ button {
 }
 
 .galaxy-sun {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   position: absolute;
   left: 0; top: 0;
   width: 92px; height: 92px;
@@ -715,6 +719,11 @@ button {
 .galaxy-sun::after {
   inset: -24px;
   background: radial-gradient(circle, rgba(169,148,199,.11), transparent 68%);
+}
+
+.galaxy-sun:focus-visible {
+  outline: 2px solid rgba(244,239,248,.8);
+  outline-offset: 8px;
 }
 
 .galaxy-sun-corona {
