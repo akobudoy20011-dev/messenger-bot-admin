@@ -1087,3 +1087,222 @@ button {
     animation: none !important;
   }
 }
+
+/* ============================================================
+   ECLIPSE SPATIAL COMMAND CENTER — PRIMARY GALAXY MODE
+   The galaxy is the workspace; panels are summoned, not permanent.
+   ============================================================ */
+
+.eclipse-shell {
+  background: #050509;
+}
+
+.eclipse-shell > header {
+  position: fixed !important;
+  inset: 0 0 auto 0;
+  z-index: 60 !important;
+  padding: 18px 22px !important;
+  pointer-events: none;
+}
+
+.eclipse-shell > header > * {
+  pointer-events: auto;
+}
+
+.eclipse-shell > header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  height: 86px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(5,5,9,.82), rgba(5,5,9,0));
+}
+
+.eclipse-shell > nav {
+  display: none !important;
+}
+
+.eclipse-shell > section.relative.z-20 {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 45 !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  pointer-events: none;
+}
+
+.command-panel {
+  position: fixed !important;
+  top: 92px !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  width: min(650px, calc(100vw - 48px)) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border: 1px solid rgba(216,210,227,.13);
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(16,13,22,.88), rgba(7,6,11,.76));
+  box-shadow:
+    -30px 30px 100px rgba(0,0,0,.52),
+    inset 1px 1px rgba(255,255,255,.035);
+  backdrop-filter: blur(30px) saturate(115%);
+  -webkit-backdrop-filter: blur(30px) saturate(115%);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.command-panel.is-overview {
+  top: auto !important;
+  right: 50% !important;
+  bottom: 28px !important;
+  width: min(760px, calc(100vw - 40px)) !important;
+  height: auto !important;
+  max-height: 300px !important;
+  transform: translateX(50%) !important;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(10,8,15,.78), rgba(5,5,9,.68));
+  box-shadow: 0 24px 90px rgba(0,0,0,.55);
+}
+
+.command-panel.is-overview.is-curtained {
+  transform: translateX(50%) translateY(calc(100% + 45px)) !important;
+}
+
+.command-panel.is-overview.is-open {
+  transform: translateX(50%) !important;
+}
+
+.command-panel-inner {
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(169,148,199,.35) transparent;
+  padding: 22px;
+}
+
+.command-panel.is-overview .command-panel-inner {
+  padding: 18px 20px 20px;
+}
+
+.command-panel.is-overview .command-panel-inner > .mb-6 {
+  margin-bottom: 14px !important;
+}
+
+.command-panel.is-overview .command-panel-inner > .mb-6 h1 {
+  font-size: 20px !important;
+}
+
+.command-panel.is-overview .command-panel-inner > .mb-6 p:last-child {
+  max-width: 520px;
+  line-height: 1.45;
+}
+
+.command-panel.is-overview .module-tile {
+  min-height: 62px;
+}
+
+.command-panel.is-overview .live-event-feed,
+.command-panel.is-overview [class*="activity pulse"] {
+  display: none;
+}
+
+.panel-curtain-tab {
+  z-index: 70 !important;
+}
+
+.eclipse-spatial-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  z-index: 35;
+  transform: translateX(-50%);
+  pointer-events: none;
+  padding: 8px 13px;
+  border: 1px solid rgba(216,210,227,.08);
+  border-radius: 999px;
+  background: rgba(5,5,9,.42);
+  color: rgba(216,210,227,.28);
+  font-size: 8px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px);
+}
+
+@media (max-width: 1023px) {
+  .eclipse-shell > header {
+    padding: 14px 14px !important;
+  }
+
+  .command-panel {
+    top: auto !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    width: auto !important;
+    max-height: min(72vh, 680px) !important;
+    border-radius: 24px;
+  }
+
+  .command-panel.is-overview {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    bottom: 12px !important;
+    transform: none !important;
+    max-height: 250px !important;
+  }
+
+  .command-panel.is-overview.is-curtained {
+    transform: translateY(calc(100% + 30px)) !important;
+  }
+
+  .command-panel.is-overview.is-open {
+    transform: none !important;
+  }
+
+  .command-panel-inner {
+    padding: 16px;
+  }
+
+  .command-panel.is-overview .command-panel-inner {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .command-panel {
+    max-height: 76vh !important;
+  }
+
+  .command-panel.is-overview {
+    max-height: 230px !important;
+  }
+
+  .command-panel.is-overview .command-panel-inner > .mb-6 {
+    margin-bottom: 10px !important;
+  }
+
+  .command-panel.is-overview .command-panel-inner > .mb-6 p:last-child {
+    display: none;
+  }
+
+  .command-panel.is-overview .grid.gap-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .eclipse-spatial-hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-panel,
+  .command-panel.is-overview,
+  .command-panel.is-overview.is-open,
+  .command-panel.is-overview.is-curtained {
+    transition: none !important;
+  }
+}
+
