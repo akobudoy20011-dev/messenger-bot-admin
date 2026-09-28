@@ -693,22 +693,31 @@ export default function App() {
     { label: 'Dashboard API', value: apiReady ? 'online' : 'waiting', ok: apiReady },
   ], [apiReady, state]);
   
-  const telemetry = snapshot
-    ? activeSection === 'users'
-      ? [['users', formatCount(snapshot.users.total_users)], ['funded', formatCount(snapshot.users.funded_users)], ['XP', formatCount(snapshot.users.total_xp)], ['game activity', formatCount(snapshot.users.games_played)]]
-      : activeSection === 'economy'
-        ? [['wallet', formatCount(snapshot.users.wallet_circulation)], ['bank', formatCount(snapshot.users.bank_circulation)], ['transactions', formatCount(snapshot.economy.transaction_count)], ['inflow', formatCount(snapshot.economy.inflow)]]
-        : activeSection === 'rpg'
-          ? [['players', formatCount(snapshot.rpg.players)], ['active', formatCount(snapshot.rpg.active_players)], ['guilds', formatCount(snapshot.guilds.guilds)], ['guild members', formatCount(snapshot.guilds.members)]]
-          : activeSection === 'games'
-            ? [['games played', formatCount(snapshot.games.games_played)], ['wins', formatCount(snapshot.games.wins)], ['players', formatCount(snapshot.games.players_with_games)], ['win rate', toNumber(snapshot.games.games_played) ? (toNumber(snapshot.games.wins) / toNumber(snapshot.games.games_played) * 100).toFixed(1) + '%' : '—']]
-            : activeSection === 'moderation'
-              ? [['warnings', formatCount(snapshot.moderation.active_warnings)], ['bans', formatCount(snapshot.moderation.active_bans)], ['mutes', formatCount(snapshot.moderation.active_mutes)], ['incidents 24h', formatCount(snapshot.moderation.incidents_24h)]]
-              : activeSection === 'analytics'
-                ? [['users', formatCount(snapshot.users.total_users)], ['XP', formatCount(snapshot.users.total_xp)], ['economy in', formatCount(snapshot.economy.inflow)], ['economy out', formatCount(snapshot.economy.outflow)]]
-                : activeSection === 'music'
-                  ? [['active jobs', formatCount(runtime?.music?.activeJobs as number)], ['pending', formatCount(runtime?.music?.pendingJobs as number)], ['downloads', formatCount(runtime?.music?.activeDownloads as number)], ['queues', formatCount(runtime?.music?.trackedGCs as number)]]
-                  : [];
+  const telemetry = useMemo(() => {
+    if (!snapshot) return [];
+    const gameRate = toNumber(snapshot.games.games_played)
+      ? `${(toNumber(snapshot.games.wins) / toNumber(snapshot.games.games_played) * 100).toFixed(1)}%`
+      : '—';
+
+    switch (activeSection) {
+      case 'users':
+        return [['users', formatCount(snapshot.users.total_users)], ['funded', formatCount(snapshot.users.funded_users)], ['XP', formatCount(snapshot.users.total_xp)], ['game activity', formatCount(snapshot.users.games_played)]];
+      case 'economy':
+        return [['wallet', formatCount(snapshot.users.wallet_circulation)], ['bank', formatCount(snapshot.users.bank_circulation)], ['transactions', formatCount(snapshot.economy.transaction_count)], ['inflow', formatCount(snapshot.economy.inflow)]];
+      case 'rpg':
+        return [['players', formatCount(snapshot.rpg.players)], ['active', formatCount(snapshot.rpg.active_players)], ['guilds', formatCount(snapshot.guilds.guilds)], ['guild members', formatCount(snapshot.guilds.members)]];
+      case 'games':
+        return [['games played', formatCount(snapshot.games.games_played)], ['wins', formatCount(snapshot.games.wins)], ['players', formatCount(snapshot.games.players_with_games)], ['win rate', gameRate]];
+      case 'moderation':
+        return [['warnings', formatCount(snapshot.moderation.active_warnings)], ['bans', formatCount(snapshot.moderation.active_bans)], ['mutes', formatCount(snapshot.moderation.active_mutes)], ['incidents 24h', formatCount(snapshot.moderation.incidents_24h)]];
+      case 'analytics':
+        return [['users', formatCount(snapshot.users.total_users)], ['XP', formatCount(snapshot.users.total_xp)], ['economy in', formatCount(snapshot.economy.inflow)], ['economy out', formatCount(snapshot.economy.outflow)]];
+      case 'music':
+        return [['active jobs', formatCount(runtime?.music?.activeJobs as number)], ['pending', formatCount(runtime?.music?.pendingJobs as number)], ['downloads', formatCount(runtime?.music?.activeDownloads as number)], ['queues', formatCount(runtime?.music?.trackedGCs as number)]];
+      default:
+        return [];
+    }
+  }, [activeSection, runtime, snapshot]);
 
 
   if (loading) {
@@ -1011,7 +1020,7 @@ export default function App() {
 
               {activeSection !== 'analytics' && module && (
                 <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
-              )
+              )}
 
               {activeSection === 'settings' && (
                 <div className="grid gap-4 md:grid-cols-2">
