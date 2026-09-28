@@ -24,7 +24,10 @@ import ConnectionCard from '@/components/ConnectionCard';
 import SessionCard from '@/components/SessionCard';
 import BotStatusCard from '@/components/BotStatusCard';
 import LogsPanel from '@/components/LogsPanel';
-import type { BotLog, BotState, DashboardRuntime, DashboardSnapshot, LogLevel } from '@/types';
+import CommandPalette from '@/components/CommandPalette';
+import LiveEventFeed from '@/components/LiveEventFeed';
+import AnalyticsSurface from '@/components/AnalyticsSurface';
+import type { BotLog, BotState, DashboardAnalytics, DashboardEvent, DashboardRuntime, DashboardSnapshot, DashboardUserInspector, LogLevel } from '@/types';
 
 const ECLIPSE_API_URL = String(import.meta.env.VITE_ECLIPSE_API_URL || '').replace(/\/$/, '');
 const DASHBOARD_KEY_STORAGE = 'eclipse_dashboard_key';
@@ -395,6 +398,13 @@ export default function App() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [runtime, setRuntime] = useState<DashboardRuntime | null>(null);
+  const [events, setEvents] = useState<DashboardEvent[]>([]);
+  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
+  const [inspector, setInspector] = useState<DashboardUserInspector | null>(null);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [inspectorBusy, setInspectorBusy] = useState(false);
+  const [inspectorThreadId, setInspectorThreadId] = useState('');
+  const [inspectorUserId, setInspectorUserId] = useState('');
   const [activeSection, setActiveSection] = useState<GalaxyNodeId>('overview');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -448,6 +458,33 @@ export default function App() {
     setRuntime(data.runtime ?? null);
     return data;
   }, [dashboardKey]);
+  const syncDashboardEvents = useCallback(async () => {
+    if (!dashboardKey) { setEvents([]); return; }
+    const data = await eclipseApi('/api/dashboard/events?limit=80', 'GET', dashboardKey);
+    setEvents(Array.isArray(data.events) ? data.events : []);
+  }, [dashboardKey]);
+
+  const syncDashboardAnalytics = useCallback(async () => {
+    if (!dashboardKey) { setAnalytics(null); return; }
+    const data = await eclipseApi('/api/dashboard/analytics?hours=24', 'GET', dashboardKey);
+    setAnalytics(data.analytics ?? null);
+  }, [dashboardKey]);
+
+  const inspectUser = useCallback(async () => {
+    const threadId = inspectorThreadId.trim();
+    const userId = inspectorUserId.trim();
+    if (!threadId || !userId) { setApiError('Enter both thread ID and user ID.'); return; }
+    setInspectorBusy(true);
+    try {
+      const data = await eclipseApi(`/api/dashboard/user?thread_id=${encodeURIComponent(threadId)}&user_id=${encodeURIComponent(userId)}`, 'GET', dashboardKey);
+      setInspector(data);
+      setInspectorOpen(true);
+      addLog('info', `Opened user inspector for ${userId}`, 'dashboard');
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : 'User inspector failed');
+    } finally { setInspectorBusy(false); }
+  }, [addLog, dashboardKey, inspectorThreadId, inspectorUserId]);
+
 
 
   useEffect(() => {
@@ -477,14 +514,31 @@ export default function App() {
 
     const snapshotPoll = window.setInterval(() => {
       void syncDashboardSnapshot().catch(() => undefined);
+      void syncDashboardEvents().catch(() => undefined);
+      void syncDashboardAnalytics().catch(() => undefined);
     }, 10000);
+
+    void syncDashboardEvents().catch(() => undefined);
+    void syncDashboardAnalytics().catch(() => undefined);
+
+    let eventStream: EventSource | null = null;
+    if (dashboardKey && ECLIPSE_API_URL) {
+      eventStream = new EventSource(`${ECLIPSE_API_URL}/api/dashboard/events/stream?dashboard_key=${encodeURIComponent(dashboardKey)}`);
+      eventStream.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data) as DashboardEvent;
+          if (parsed?.id) setEvents((previous) => [parsed, ...previous.filter((item) => item.id !== parsed.id)].slice(0, 80));
+        } catch {}
+      };
+    }
 
     return () => {
       cancelled = true;
       window.clearInterval(runtimePoll);
       window.clearInterval(snapshotPoll);
+      eventStream?.close();
     };
-  }, [dashboardKey, syncRuntimeState, syncDashboardSnapshot]);
+  }, [dashboardKey, syncRuntimeState, syncDashboardSnapshot, syncDashboardEvents, syncDashboardAnalytics]);
 
   const runAction = async (
     action: () => Promise<void>,
@@ -595,6 +649,38 @@ export default function App() {
     setMobileNavOpen(false);
   };
 
+  const commandItems = useMemo(() => [
+    ...NAV.map((item) => ({ id: `nav:${item.id}`, label: `Open ${item.label}`, hint: `Navigate to the ${item.label.toLowerCase()} constellation`, keywords: item.label })),
+    { id: 'action:reconnect', label: 'Reconnect Messenger', hint: 'Request a fresh Messenger listener connection', keywords: 'facebook session messenger' },
+    { id: 'action:start', label: 'Start message handling', hint: 'Enable ECLIPSE message processing', keywords: 'bot runtime start' },
+    { id: 'action:stop', label: 'Pause message handling', hint: 'Pause ECLIPSE message processing', keywords: 'bot runtime stop pause', danger: true },
+    { id: 'action:music-pause', label: 'Pause music queue', hint: 'Stop new music jobs from starting', keywords: 'music queue' },
+    { id: 'action:music-resume', label: 'Resume music queue', hint: 'Allow queued music jobs to continue', keywords: 'music queue' },
+    { id: 'action:refresh', label: 'Refresh command center', hint: 'Pull the latest runtime, snapshot and analytics data', keywords: 'refresh reload sync' },
+    { id: 'action:inspect', label: 'Inspect a user', hint: 'Open the deep Messenger + RPG user inspector', keywords: 'user player profile' },
+  ], []);
+
+  const handleCommand = async (id: string) => {
+    if (id.startsWith('nav:')) return selectSection(id.slice(4) as GalaxyNodeId);
+    if (id === 'action:reconnect') return handleReconnect();
+    if (id === 'action:start') return handleStartBot();
+    if (id === 'action:stop') return handleStopBot();
+    if (id === 'action:music-pause' || id === 'action:music-resume') {
+      const endpoint = id === 'action:music-pause' ? '/api/dashboard/music/pause' : '/api/dashboard/music/resume';
+      try {
+        await eclipseApi(endpoint, 'POST', dashboardKey);
+        await syncDashboardSnapshot();
+        await syncDashboardEvents();
+      } catch (error) { setApiError(error instanceof Error ? error.message : 'Music action failed'); }
+      return;
+    }
+    if (id === 'action:refresh') {
+      await Promise.all([syncRuntimeState().catch(() => undefined), syncDashboardSnapshot().catch(() => undefined), syncDashboardEvents().catch(() => undefined), syncDashboardAnalytics().catch(() => undefined)]);
+      return;
+    }
+    if (id === 'action:inspect') setInspectorOpen(true);
+  };
+
   const activeNav = NAV.find((item) => item.id === activeSection);
   const module = activeSection in MODULES
     ? MODULES[activeSection as keyof typeof MODULES]
@@ -661,6 +747,7 @@ export default function App() {
         </button>
 
         <div className="flex items-center gap-2">
+          <CommandPalette items={commandItems} onSelect={(id) => void handleCommand(id)} />
           <div className={`status-orbit ${apiReady ? 'is-live' : ''}`}>
             <span />
             {apiReady ? 'runtime linked' : 'runtime waiting'}
@@ -842,10 +929,11 @@ export default function App() {
                         <Activity size={16} className="text-[#B9829B]" />
                         <p className="text-[9px] uppercase tracking-[.22em] text-white/28">activity pulse</p>
                       </div>
-                      <p className="mt-3 font-display text-2xl text-white">{logs.length}</p>
-                      <p className="mt-1 text-[11px] text-white/35">local dashboard events retained</p>
+                      <p className="mt-3 font-display text-2xl text-white">{events.length}</p>
+                      <p className="mt-1 text-[11px] text-white/35">live runtime events retained</p>
                     </div>
                   </div>
+                  <div className="mt-4"><LiveEventFeed events={events} /></div>
                 </>
               )}
 
@@ -907,9 +995,23 @@ export default function App() {
                 </div>
               )}
 
-              {module && (
-                <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
+              {activeSection === 'analytics' && <AnalyticsSurface analytics={analytics} />}
+
+              {activeSection === 'users' && (
+                <div className="mb-4 user-inspector">
+                  <div className="mb-3"><p className="text-[9px] uppercase tracking-[.22em] text-white/25">deep user inspector</p><p className="mt-1 text-xs text-white/40">Messenger identity · economy · RPG · inventory · moderation</p></div>
+                  <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                    <input className="eclipse-input" value={inspectorThreadId} onChange={(event) => setInspectorThreadId(event.target.value)} placeholder="thread ID" />
+                    <input className="eclipse-input" value={inspectorUserId} onChange={(event) => setInspectorUserId(event.target.value)} placeholder="user ID" onKeyDown={(event) => { if (event.key === 'Enter') void inspectUser(); }} />
+                    <button className="eclipse-button-secondary" disabled={inspectorBusy} onClick={() => void inspectUser()}>{inspectorBusy ? 'Inspecting…' : 'Inspect'}</button>
+                  </div>
+                  {inspector?.user && <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">{[['balance', inspector.user.balance], ['bank', inspector.user.bank_balance], ['XP', inspector.user.xp], ['level', inspector.user.level], ['games', inspector.user.games_played]].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.15em] text-white/20">{label}</p><p className="mt-1 text-sm text-white/70">{String(value ?? '—')}</p></div>)}</div>}
+                </div>
               )}
+
+              {activeSection !== 'analytics' && module && (
+                <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
+              )
 
               {activeSection === 'settings' && (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -938,6 +1040,23 @@ export default function App() {
             </div>
           </div>
         </section>
+      )}
+
+      {inspectorOpen && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-end bg-black/35 p-3 backdrop-blur-[2px]" onMouseDown={() => setInspectorOpen(false)}>
+          <div className="command-panel w-full max-w-xl" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="command-panel-inner">
+              <div className="mb-5 flex items-center justify-between"><div><p className="eclipse-kicker">USER INSPECTOR</p><h2 className="mt-2 text-xl text-white">Deep identity lookup</h2></div><button className="rounded-full border border-white/10 p-2 text-white/40 hover:bg-white/5" onClick={() => setInspectorOpen(false)}><X size={16} /></button></div>
+              <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                <input className="eclipse-input" value={inspectorThreadId} onChange={(event) => setInspectorThreadId(event.target.value)} placeholder="thread ID" />
+                <input className="eclipse-input" value={inspectorUserId} onChange={(event) => setInspectorUserId(event.target.value)} placeholder="user ID" onKeyDown={(event) => { if (event.key === 'Enter') void inspectUser(); }} />
+                <button className="eclipse-button" disabled={inspectorBusy} onClick={() => void inspectUser()}>{inspectorBusy ? 'Loading…' : 'Inspect'}</button>
+              </div>
+              {inspector?.user && <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">{[['wallet', inspector.user.balance], ['bank', inspector.user.bank_balance], ['XP', inspector.user.xp], ['level', inspector.user.level], ['games', inspector.user.games_played], ['wins', inspector.user.wins], ['inventory', inspector.inventory.length], ['incidents', inspector.moderation.length]].map(([label, value]) => <div key={label} className="signal-card"><div><p className="text-[9px] uppercase tracking-[.15em] text-white/25">{label}</p><p className="mt-1 text-xs text-white/70">{String(value ?? '—')}</p></div></div>)}</div>}
+              {inspector?.rpg && <div className="mt-3 command-surface"><p className="text-[9px] uppercase tracking-[.18em] text-white/25">RPG</p><p className="mt-2 text-xs text-white/60">{String(inspector.rpg.character_class || 'unknown')} · {String(inspector.rpg.region_id || 'unknown')} · Lv {String(inspector.rpg.level || 1)}</p></div>}
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
