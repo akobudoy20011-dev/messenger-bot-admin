@@ -25,7 +25,7 @@ import ConnectionCard from '@/components/ConnectionCard';
 import SessionCard from '@/components/SessionCard';
 import BotStatusCard from '@/components/BotStatusCard';
 import LogsPanel from '@/components/LogsPanel';
-import type { BotLog, BotState, LogLevel } from '@/types';
+import type { BotLog, BotState, DashboardRuntime, DashboardSnapshot, LogLevel } from '@/types';
 
 const ECLIPSE_API_URL = String(import.meta.env.VITE_ECLIPSE_API_URL || '').replace(/\/$/, '');
 const DASHBOARD_KEY_STORAGE = 'eclipse_dashboard_key';
@@ -186,7 +186,7 @@ function SectionIcon({ id }: { id: GalaxyNodeId }) {
   return <Icon size={17} strokeWidth={1.8} />;
 }
 
-function formatDate(value: string | null) {
+function toNumber(value: number | string | null | undefined) {\n  const number = Number(value);\n  return Number.isFinite(number) ? number : 0;\n}\n\nfunction formatCount(value: number | string | null | undefined) {\n  return toNumber(value).toLocaleString();\n}\n\nfunction formatDate(value: string | null) {
   if (!value) return '—';
   return new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 }
@@ -201,7 +201,7 @@ export default function App() {
     () => sessionStorage.getItem(DASHBOARD_KEY_STORAGE) || ''
   );
   const [apiReady, setApiReady] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);\n  const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);\n  const [runtime, setRuntime] = useState<DashboardRuntime | null>(null);
   const [activeSection, setActiveSection] = useState<GalaxyNodeId>('overview');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -242,6 +242,20 @@ export default function App() {
     setApiError(data.login_error ? String(data.login_error) : null);
     return data;
   }, [dashboardKey]);
+  
+  const syncDashboardSnapshot = useCallback(async () => {
+    if (!dashboardKey) {
+      setSnapshot(null);
+      setRuntime(null);
+      return null;
+    }
+
+    const data = await eclipseApi('/api/dashboard/snapshot', 'GET', dashboardKey);
+    setSnapshot(data.snapshot ?? null);
+    setRuntime(data.runtime ?? null);
+    return data;
+  }, [dashboardKey]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -252,7 +266,7 @@ export default function App() {
         return;
       }
       try {
-        await syncRuntimeState();
+        await syncRuntimeState();\n        await syncDashboardSnapshot();
       } catch (error) {
         if (!cancelled) {
           setApiReady(false);
@@ -263,15 +277,20 @@ export default function App() {
       }
     })();
 
-    const poll = window.setInterval(() => {
+    const runtimePoll = window.setInterval(() => {
       void syncRuntimeState().catch(() => undefined);
     }, 5000);
 
+    const snapshotPoll = window.setInterval(() => {
+      void syncDashboardSnapshot().catch(() => undefined);
+    }, 10000);
+
     return () => {
       cancelled = true;
-      window.clearInterval(poll);
+      window.clearInterval(runtimePoll);
+      window.clearInterval(snapshotPoll);
     };
-  }, [dashboardKey, syncRuntimeState]);
+  }, [dashboardKey, syncRuntimeState, syncDashboardSnapshot]);
 
   const runAction = async (
     action: () => Promise<void>,
@@ -393,6 +412,24 @@ export default function App() {
     { label: 'Session', value: state.session_active ? 'active' : 'idle', ok: state.session_active },
     { label: 'Dashboard API', value: apiReady ? 'online' : 'waiting', ok: apiReady },
   ], [apiReady, state]);
+  
+  const telemetry = snapshot
+    ? activeSection === 'users'
+      ? [['users', formatCount(snapshot.users.total_users)], ['funded', formatCount(snapshot.users.funded_users)], ['XP', formatCount(snapshot.users.total_xp)], ['game activity', formatCount(snapshot.users.games_played)]]
+      : activeSection === 'economy'
+        ? [['wallet', formatCount(snapshot.users.wallet_circulation)], ['bank', formatCount(snapshot.users.bank_circulation)], ['transactions', formatCount(snapshot.economy.transaction_count)], ['inflow', formatCount(snapshot.economy.inflow)]]
+        : activeSection === 'rpg'
+          ? [['players', formatCount(snapshot.rpg.players)], ['active', formatCount(snapshot.rpg.active_players)], ['guilds', formatCount(snapshot.guilds.guilds)], ['guild members', formatCount(snapshot.guilds.members)]]
+          : activeSection === 'games'
+            ? [['games played', formatCount(snapshot.games.games_played)], ['wins', formatCount(snapshot.games.wins)], ['players', formatCount(snapshot.games.players_with_games)], ['win rate', toNumber(snapshot.games.games_played) ? (toNumber(snapshot.games.wins) / toNumber(snapshot.games.games_played) * 100).toFixed(1) + '%' : '—']]
+            : activeSection === 'moderation'
+              ? [['warnings', formatCount(snapshot.moderation.active_warnings)], ['bans', formatCount(snapshot.moderation.active_bans)], ['mutes', formatCount(snapshot.moderation.active_mutes)], ['incidents 24h', formatCount(snapshot.moderation.incidents_24h)]]
+              : activeSection === 'analytics'
+                ? [['users', formatCount(snapshot.users.total_users)], ['XP', formatCount(snapshot.users.total_xp)], ['economy in', formatCount(snapshot.economy.inflow)], ['economy out', formatCount(snapshot.economy.outflow)]]
+                : activeSection === 'music'
+                  ? [['active jobs', formatCount(runtime?.music?.activeJobs as number)], ['pending', formatCount(runtime?.music?.pendingJobs as number)], ['downloads', formatCount(runtime?.music?.activeDownloads as number)], ['queues', formatCount(runtime?.music?.trackedGCs as number)]]
+                  : [];
+
 
   if (loading) {
     return (
@@ -644,6 +681,20 @@ export default function App() {
 
               {activeSection === 'logs' && (
                 <LogsPanel logs={logs} onClear={handleClearLogs} />
+              )}
+
+              {module && telemetry.length > 0 && (
+                <div className="mb-4 grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+                  {telemetry.map(([label, value]) => (
+                    <div key={label} className="signal-card">
+                      <div className="signal-dot is-live" />
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[.18em] text-white/30">{label}</p>
+                        <p className="mt-1 text-sm text-white/80">{value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
 
               {module && (
