@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Info, AlertTriangle, XCircle, CheckCircle2, Terminal, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Info, AlertTriangle, XCircle, CheckCircle2, Terminal, Trash2, Search } from 'lucide-react';
 import type { BotLog, LogLevel } from '@/types';
 
 interface LogsPanelProps {
@@ -7,123 +7,113 @@ interface LogsPanelProps {
   onClear: () => void;
 }
 
-const levelConfig: Record<
-  LogLevel,
-  { icon: typeof Info; color: string; bg: string; border: string; label: string }
-> = {
-  info: {
-    icon: Info,
-    color: 'text-lilac-600',
-    bg: 'bg-lilac-50',
-    border: 'border-lilac-200',
-    label: 'INFO',
-  },
-  warn: {
-    icon: AlertTriangle,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    label: 'WARN',
-  },
-  error: {
-    icon: XCircle,
-    color: 'text-rose-600',
-    bg: 'bg-rose-50',
-    border: 'border-rose-200',
-    label: 'ERROR',
-  },
-  success: {
-    icon: CheckCircle2,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    label: 'OK',
-  },
+const levelConfig: Record<LogLevel, { icon: typeof Info; label: string; tone: string }> = {
+  info: { icon: Info, label: 'INFO', tone: 'text-lilac-300' },
+  warn: { icon: AlertTriangle, label: 'WARN', tone: 'text-amber-300' },
+  error: { icon: XCircle, label: 'ERROR', tone: 'text-rose-300' },
+  success: { icon: CheckCircle2, label: 'OK', tone: 'text-emerald-300' },
 };
 
 export default function LogsPanel({ logs, onClear }: LogsPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState('');
+  const [level, setLevel] = useState<'all' | LogLevel>('all');
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return logs.filter((log) => {
+      const matchesLevel = level === 'all' || log.level === level;
+      const haystack = `${log.message} ${log.source || ''}`.toLowerCase();
+      return matchesLevel && (!needle || haystack.includes(needle));
+    });
+  }, [logs, level, query]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = 0;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [logs]);
 
   return (
-    <div className="glass-card flex flex-col rounded-3xl border border-white/60 shadow-lilac animate-slide-up">
-      <div className="flex items-center justify-between border-b border-coquette-100/60 px-6 py-5">
+    <section className="command-surface !p-0" aria-label="Activity logs">
+      <div className="flex flex-col gap-4 border-b border-white/5 p-5 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-coquette-400 to-lilac-500 text-white shadow-glow-pink">
-            <Terminal size={22} />
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[.025] text-lilac-300">
+            <Terminal size={18} aria-hidden="true" />
           </div>
           <div>
-            <h3 className="font-display text-lg font-semibold text-coquette-800">
-              Activity Logs
-            </h3>
-            <p className="text-xs text-coquette-400">
-              {logs.length} {logs.length === 1 ? 'entry' : 'entries'}
-            </p>
+            <p className="eclipse-kicker">operational history</p>
+            <h2 className="mt-1 text-sm font-medium text-white/85">Activity logs</h2>
+            <p className="mt-1 text-[10px] text-white/30">{filtered.length} visible · {logs.length} stored locally</p>
           </div>
         </div>
+
         <button
+          type="button"
           onClick={onClear}
           disabled={logs.length === 0}
-          className="flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white/60 px-3 py-2 text-xs font-semibold text-rose-500 transition-all duration-200 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="eclipse-button-secondary min-h-[42px] self-start"
+          aria-label="Clear activity logs"
         >
-          <Trash2 size={14} />
+          <Trash2 size={14} aria-hidden="true" />
           Clear
         </button>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="scrollbar-coquette max-h-[480px] flex-1 space-y-2 overflow-y-auto p-5"
-      >
-        {logs.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-2 text-coquette-300">
-            <Terminal size={32} className="opacity-40" />
-            <p className="text-sm">No logs yet</p>
+      <div className="grid gap-2 border-b border-white/5 p-4 md:grid-cols-[1fr_auto]">
+        <label className="eclipse-input flex items-center gap-2">
+          <Search size={14} className="text-white/25" aria-hidden="true" />
+          <span className="sr-only">Search logs</span>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search message or source…"
+            className="w-full bg-transparent text-xs outline-none"
+          />
+        </label>
+        <div className="flex overflow-x-auto rounded-2xl border border-white/10 bg-black/10 p-1" role="group" aria-label="Filter log level">
+          {(['all', 'info', 'success', 'warn', 'error'] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setLevel(item)}
+              className={`min-h-[40px] rounded-xl px-3 text-[9px] font-bold uppercase tracking-[.12em] transition ${level === item ? 'bg-white/[.08] text-white/80' : 'text-white/25 hover:text-white/55'}`}
+              aria-pressed={level === item}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="scrollbar-coquette max-h-[520px] overflow-y-auto p-4">
+        {filtered.length === 0 ? (
+          <div className="data-state" role="status">
+            <strong>{logs.length ? 'No matching logs' : 'No logs yet'}</strong>
+            <span>{logs.length ? 'Try another search or severity filter.' : 'Operational events will appear here as the dashboard runs.'}</span>
           </div>
         ) : (
-          logs.map((log) => {
-            const cfg = levelConfig[log.level];
-            const Icon = cfg.icon;
-            return (
-              <div
-                key={log.id}
-                className={`flex items-start gap-3 rounded-2xl border ${cfg.border} ${cfg.bg} px-4 py-3 animate-fade-in`}
-              >
-                <Icon size={16} className={`mt-0.5 shrink-0 ${cfg.color}`} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${cfg.color} ${cfg.bg} border ${cfg.border}`}
-                    >
-                      {cfg.label}
-                    </span>
-                    {log.source && (
-                      <span className="rounded-md bg-white/70 px-1.5 py-0.5 text-[10px] font-medium text-coquette-500">
-                        {log.source}
-                      </span>
-                    )}
-                    <span className="ml-auto text-[10px] text-coquette-300">
-                      {new Date(log.created_at).toLocaleTimeString(undefined, {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </span>
+          <div className="space-y-1.5">
+            {filtered.map((log) => {
+              const cfg = levelConfig[log.level];
+              const Icon = cfg.icon;
+              return (
+                <article key={log.id} className="grid grid-cols-[auto_1fr] gap-3 rounded-xl border border-white/5 bg-white/[.018] px-3 py-3 transition hover:border-white/10 hover:bg-white/[.03]">
+                  <Icon size={15} className={`mt-0.5 ${cfg.tone}`} aria-hidden="true" />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`text-[9px] font-bold tracking-[.12em] ${cfg.tone}`}>{cfg.label}</span>
+                      {log.source && <span className="text-[9px] text-white/25">{log.source}</span>}
+                      <time className="ml-auto text-[9px] text-white/20" dateTime={log.created_at}>
+                        {new Date(log.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </time>
+                    </div>
+                    <p className="mt-1 break-words font-mono text-[10px] leading-5 text-white/55">{log.message}</p>
                   </div>
-                  <p className="mt-1 break-words font-mono text-xs text-coquette-700">
-                    {log.message}
-                  </p>
-                </div>
-              </div>
-            );
-          })
+                </article>
+              );
+            })}
+          </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
