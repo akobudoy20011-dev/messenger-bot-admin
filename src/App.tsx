@@ -10,6 +10,8 @@ import {
   HeartPulse,
   LayoutDashboard,
   Menu,
+  PanelRightClose,
+  PanelRightOpen,
   MessageCircle,
   Music2,
   Radar,
@@ -407,6 +409,15 @@ export default function App() {
   const [inspectorUserId, setInspectorUserId] = useState('');
   const [activeSection, setActiveSection] = useState<GalaxyNodeId>('overview');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && panelOpen) setPanelOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [panelOpen]);
 
   const addLog = useCallback((level: LogLevel, message: string, source: string) => {
     setLogs((previous) => {
@@ -869,13 +880,24 @@ export default function App() {
                       : module?.description || 'Operational controls and runtime state for this ECLIPSE subsystem.'}
                   </p>
                 </div>
-                <button
-                  className="hidden rounded-full border border-white/10 p-2 text-white/45 hover:bg-white/5 sm:block"
-                  onClick={() => selectSection('overview')}
-                  aria-label="Return to command center"
-                >
-                  <Radar size={17} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="hidden rounded-full border border-white/10 p-2 text-white/45 hover:bg-white/5 sm:block"
+                    onClick={() => selectSection('overview')}
+                    aria-label="Return to command center"
+                    title="Return to command center"
+                  >
+                    <Radar size={17} />
+                  </button>
+                  <button
+                    className="panel-close-button"
+                    onClick={() => setPanelOpen(false)}
+                    aria-label="Close command center panel"
+                    title="Hide panel · press Escape"
+                  >
+                    <PanelRightClose size={17} />
+                  </button>
+                </div>
               </div>
 
               {apiError && (
