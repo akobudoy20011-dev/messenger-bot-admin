@@ -210,6 +210,38 @@ export default function App() {
     };
   }, [fetchState]);
 
+  const handleConnectRawCookie = async (cookieHeader: string) => {
+    const cookie = cookieHeader.trim();
+    if (!cookie) return;
+
+    setConnBusy(true);
+    await addLog('info', 'Submitting a Facebook session cookie to ECLIPSE…', 'facebook');
+
+    try {
+      await eclipseApi('/api/dashboard/connect-session', 'POST', dashboardKey, {
+        appState: cookie,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const status = await syncRuntimeState(setState, dashboardKey);
+      setApiReady(true);
+      const loginError = status.login_error ? String(status.login_error) : null;
+      setApiError(loginError);
+      await addLog(
+        loginError ? 'error' : 'success',
+        loginError
+          ? 'Facebook session rejected: ' + loginError
+          : 'Facebook session submitted; ECLIPSE is connecting…',
+        'facebook'
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Facebook cookie submission failed';
+      setApiError(message);
+      await addLog('error', `Facebook cookie submission failed: ${message}`, 'facebook');
+    } finally {
+      setConnBusy(false);
+    }
+  };
+
   const handleConnectSession = async (file: File) => {
     setConnBusy(true);
     await addLog('info', 'Uploading a Facebook session to ECLIPSE…', 'facebook');
@@ -397,6 +429,7 @@ export default function App() {
           state={state}
           busy={connBusy}
           onConnectSession={handleConnectSession}
+          onConnectRawCookie={handleConnectRawCookie}
           onReconnect={handleReconnect}
           onDisconnect={handleDisconnect}
         />
