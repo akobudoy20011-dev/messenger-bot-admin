@@ -455,7 +455,8 @@ export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
 
         {NODES.map((node) => {
           const orbit = ORBITS[node.orbit];
-          const orbitSpeed = [8, -6, 4, -2.5][node.orbit] ?? 0;\n          const rad = ((node.angle + orbitPhase * orbitSpeed) * Math.PI) / 180;
+          const orbitSpeed = [8, -6, 4, -2.5][node.orbit] ?? 0;
+          const rad = ((node.angle + orbitPhase * orbitSpeed) * Math.PI) / 180;
           const x = Math.cos(rad) * orbit.rx;
           const y = Math.sin(rad) * orbit.ry;
           const active = node.id === focusId;
