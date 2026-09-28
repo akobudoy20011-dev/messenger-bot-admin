@@ -470,3 +470,115 @@ button {
   -webkit-text-security: disc;
   text-security: disc;
 }
+
+
+.panel-close-button {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(216,210,227,.11);
+  border-radius: 999px;
+  background: rgba(0,0,0,.24);
+  color: rgba(216,210,227,.48);
+  backdrop-filter: blur(18px);
+  transition: transform .2s ease, color .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.panel-close-button:hover {
+  transform: translateX(2px);
+  color: rgba(244,239,248,.9);
+  background: rgba(169,148,199,.1);
+  border-color: rgba(169,148,199,.25);
+}
+
+.command-panel.is-curtained {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(calc(100% + 40px));
+  visibility: hidden;
+}
+
+.command-panel.is-open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: transform .48s cubic-bezier(.22,1,.36,1), opacity .25s ease, visibility 0s linear 0s;
+}
+
+.command-panel.is-curtained {
+  transition: transform .48s cubic-bezier(.22,1,.36,1), opacity .2s ease, visibility 0s linear .48s;
+}
+
+.panel-curtain-tab {
+  position: fixed;
+  z-index: 55;
+  top: 50%;
+  right: 0;
+  display: flex;
+  min-height: 112px;
+  width: 46px;
+  transform: translateY(-50%);
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid rgba(216,210,227,.12);
+  border-right: 0;
+  border-radius: 22px 0 0 22px;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(185,130,155,.18), transparent 42%),
+    rgba(8,7,12,.72);
+  color: rgba(216,210,227,.65);
+  box-shadow: -14px 0 45px rgba(0,0,0,.3), inset 1px 0 rgba(255,255,255,.035);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transition: width .25s ease, color .25s ease, background .25s ease;
+}
+
+.panel-curtain-tab:hover {
+  width: 54px;
+  color: #f4eff8;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(185,130,155,.25), transparent 42%),
+    rgba(12,10,17,.88);
+}
+
+.panel-curtain-tab span {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .2em;
+}
+
+@media (max-width: 1023px) {
+  .panel-curtain-tab {
+    top: auto;
+    right: 50%;
+    bottom: 18px;
+    width: auto;
+    min-height: 44px;
+    height: 44px;
+    min-width: 176px;
+    transform: translateX(50%);
+    flex-direction: row;
+    border-right: 1px solid rgba(216,210,227,.12);
+    border-radius: 999px;
+    writing-mode: horizontal-tb;
+    box-shadow: 0 12px 45px rgba(0,0,0,.42);
+  }
+
+  .panel-curtain-tab:hover {
+    width: auto;
+  }
+
+  .panel-curtain-tab span {
+    font-size: 9px;
+  }
+
+  .command-panel.is-curtained {
+    display: none;
+  }
+}
