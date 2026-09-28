@@ -555,27 +555,28 @@ button {
 
 @media (max-width: 1023px) {
   .panel-curtain-tab {
-    top: auto;
-    right: 50%;
-    bottom: 18px;
-    width: auto;
-    min-height: 44px;
-    height: 44px;
-    min-width: 176px;
-    transform: translateX(50%);
-    flex-direction: row;
+    top: 50%;
+    right: 12px;
+    bottom: auto;
+    width: 46px;
+    min-width: 46px;
+    min-height: 110px;
+    height: 110px;
+    transform: translateY(-50%);
+    flex-direction: column;
     border-right: 1px solid rgba(216,210,227,.12);
-    border-radius: 999px;
-    writing-mode: horizontal-tb;
-    box-shadow: 0 12px 45px rgba(0,0,0,.42);
+    border-left: 1px solid rgba(216,210,227,.12);
+    border-radius: 22px;
+    writing-mode: vertical-rl;
+    box-shadow: -10px 12px 45px rgba(0,0,0,.42);
   }
 
   .panel-curtain-tab:hover {
-    width: auto;
+    width: 52px;
   }
 
   .panel-curtain-tab span {
-    font-size: 9px;
+    font-size: 8px;
   }
 
   .command-panel.is-curtained {
