@@ -1101,7 +1101,26 @@ export default function App() {
                 </div>
               )}
 
-              {activeSection !== 'analytics' && module && (
+              {activeSection === 'analytics' && (
+                <div className="space-y-4">
+                  <div className="command-surface">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-[.22em] text-white/25">historical signal</p>
+                        <p className="mt-1 text-sm text-white/75">ECLIPSE activity over the selected reporting window</p>
+                      </div>
+                      <span className="text-[10px] text-white/25">{analytics?.hours ?? 24}h window</span>
+                    </div>
+                  </div>
+                  <AnalyticsSurface analytics={analytics} />
+                </div>
+              )}
+
+              {activeSection === 'logs' && (
+                <LogsPanel logs={logs} onClear={handleClearLogs} />
+              )}
+
+              {activeSection !== 'analytics' && activeSection !== 'logs' && module && (
                 <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
               )}
 
