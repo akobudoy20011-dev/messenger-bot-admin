@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Facebook, FileJson, RefreshCw, ShieldCheck, UserCircle2, Wifi, WifiOff } from 'lucide-react';
+import { Facebook, FileJson, Eye, EyeOff, LockKeyhole, RefreshCw, ShieldCheck, UserCircle2, Wifi, WifiOff } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import type { BotState } from '@/types';
 
@@ -19,39 +19,76 @@ interface RawCookieInputProps {
 
 function RawCookieInput({ busy, onSubmit }: RawCookieInputProps) {
   const [value, setValue] = useState('');
+  const [revealed, setRevealed] = useState(false);
 
   const submit = () => {
     const cookie = value.trim();
     if (!cookie || busy) return;
     onSubmit(cookie);
     setValue('');
+    setRevealed(false);
   };
 
   return (
-    <div className="space-y-3">
-      <textarea
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        disabled={busy}
-        spellCheck={false}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="none"
-        placeholder="c_user=…; xs=…; fr=…"
-        className="min-h-24 w-full resize-y rounded-2xl border border-coquette-200 bg-white/80 px-4 py-3 font-mono text-xs text-coquette-800 outline-none transition focus:border-coquette-400 focus:ring-2 focus:ring-coquette-100 disabled:opacity-60"
-      />
-      <button
-        type="button"
-        onClick={submit}
-        disabled={busy || !value.trim()}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-coquette-200 bg-white px-4 py-3 text-sm font-semibold text-coquette-700 transition hover:border-coquette-300 hover:bg-coquette-50 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <ShieldCheck size={16} />
-        {busy ? 'Connecting…' : 'Connect with cookie'}
-      </button>
-      <p className="text-[11px] leading-relaxed text-coquette-400">
-        Paste the browser cookie header exactly as copied. It is sent directly to ECLIPSE for this connection attempt and is cleared from this form after submission.
-      </p>
+    <div className="overflow-hidden rounded-3xl border border-coquette-200/80 bg-gradient-to-br from-white via-white to-lilac-50/60 shadow-[0_12px_35px_rgba(180,110,170,.10)]">
+      <div className="flex items-center justify-between border-b border-coquette-100 bg-white/70 px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-coquette-100 to-lilac-100 text-coquette-500">
+            <LockKeyhole size={15} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-coquette-600">Private session</p>
+            <p className="text-[10px] text-coquette-300">browser cookie header</p>
+          </div>
+        </div>
+        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-500">
+          not stored here
+        </span>
+      </div>
+
+      <div className="p-3">
+        <div className="relative">
+          <textarea
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            disabled={busy}
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            placeholder="c_user=…; xs=…; fr=…"
+            className="min-h-28 w-full resize-y rounded-2xl border border-coquette-100 bg-[#fffafd] px-4 py-3 pr-12 font-mono text-[11px] leading-5 text-coquette-800 outline-none transition placeholder:text-coquette-200 focus:border-coquette-400 focus:ring-4 focus:ring-coquette-100/70 disabled:opacity-60"
+            style={{ WebkitTextSecurity: revealed ? 'none' : 'disc' } as React.CSSProperties}
+          />
+          <button
+            type="button"
+            aria-label={revealed ? 'Hide cookie' : 'Reveal cookie'}
+            title={revealed ? 'Hide cookie' : 'Reveal cookie'}
+            onClick={() => setRevealed((current) => !current)}
+            disabled={busy || !value}
+            className="absolute right-3 top-3 rounded-xl border border-coquette-100 bg-white/90 p-2 text-coquette-400 shadow-sm transition hover:border-coquette-200 hover:bg-coquette-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {revealed ? <EyeOff size={15} /> : <Eye size={15} />}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={submit}
+          disabled={busy || !value.trim()}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-coquette-400 via-pink-500 to-lilac-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(196,91,180,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(196,91,180,.28)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+        >
+          <ShieldCheck size={16} />
+          {busy ? 'Connecting…' : 'Connect secure session'}
+        </button>
+
+        <div className="mt-3 flex items-start gap-2 rounded-2xl bg-coquette-50/70 px-3 py-2.5">
+          <ShieldCheck size={14} className="mt-0.5 shrink-0 text-emerald-400" />
+          <p className="text-[10px] leading-5 text-coquette-400">
+            The cookie is forwarded to ECLIPSE for this connection attempt, then cleared from this form. Never save it in GitHub, screenshots, or browser storage.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -127,9 +164,9 @@ export default function ConnectionCard({
               <FileJson size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-coquette-800">Connect with a session export</h4>
+              <h4 className="text-sm font-semibold text-coquette-800">Connect your Messenger session</h4>
               <p className="mt-1 text-xs leading-relaxed text-coquette-500">
-                This bot connects with a saved Facebook browser session. Export your cookies after signing in to Facebook, then upload the JSON file here.
+                Use a saved browser session, or paste the cookie header directly. Your secret stays out of the dashboard UI after submission.
               </p>
             </div>
           </div>
@@ -162,7 +199,7 @@ export default function ConnectionCard({
             <p>Accepted: cookie arrays, wrapped exports, or a cookie-header text file.</p>
             <p className="flex items-start gap-1.5">
               <ShieldCheck size={14} className="mt-0.5 shrink-0 text-emerald-400" />
-              The dashboard forwards the file to ECLIPSE and does not save it in browser storage.
+              The dashboard does not put the session in localStorage or sessionStorage.
             </p>
           </div>
         </div>
