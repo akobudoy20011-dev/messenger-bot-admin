@@ -186,9 +186,201 @@ function SectionIcon({ id }: { id: GalaxyNodeId }) {
   return <Icon size={17} strokeWidth={1.8} />;
 }
 
-function toNumber(value: number | string | null | undefined) {\n  const number = Number(value);\n  return Number.isFinite(number) ? number : 0;\n}\n\nfunction formatCount(value: number | string | null | undefined) {\n  return toNumber(value).toLocaleString();\n}\n\nfunction formatDate(value: string | null) {
-  if (!value) return '—';
-  return new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+function toNumber(value: number | string | null | undefined) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatCount(value: number | string | null | undefined) {
+  return toNumber(value).toLocaleString();
+}
+
+function formatDate(value: string | number | null | undefined) {
+  if (value === null || value === undefined || value === '') return '—';
+  const date = new Date(Number(value) || value);
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function ModuleDataSurface({
+  section,
+  snapshot,
+  runtime,
+}: {
+  section: GalaxyNodeId;
+  snapshot: DashboardSnapshot | null;
+  runtime: DashboardRuntime | null;
+}) {
+  if (!snapshot) {
+    return (
+      <div className="command-surface">
+        <p className="text-xs text-white/40">Waiting for the ECLIPSE data bridge…</p>
+      </div>
+    );
+  }
+
+  const rowClass = "border-b border-white/5 last:border-0";
+  const cellClass = "px-3 py-2.5 text-xs";
+
+  if (section === 'users') {
+    return (
+      <div className="command-surface overflow-hidden">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-[9px] uppercase tracking-[.22em] text-white/25">live directory</p>
+            <p className="mt-1 text-sm text-white/80">Recent ECLIPSE participants</p>
+          </div>
+          <span className="text-[10px] text-white/30">{formatCount(snapshot.users.total_users)} records</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px]">
+            <thead><tr className="text-left text-[9px] uppercase tracking-[.16em] text-white/25">
+              <th className={cellClass}>identity</th><th className={cellClass}>level</th><th className={cellClass}>wallet</th><th className={cellClass}>bank</th><th className={cellClass}>XP</th><th className={cellClass}>games</th>
+            </tr></thead>
+            <tbody>{snapshot.users.recent_users.map((user) => (
+              <tr key={user.thread_id + ':' + user.user_id} className={rowClass}>
+                <td className={cellClass}><div className="text-white/75">{user.display_name || user.user_id}</div><div className="text-[9px] text-white/25">{user.user_id}</div></td>
+                <td className={cellClass}>{formatCount(user.level)}</td>
+                <td className={cellClass}>{formatCount(user.balance)}</td>
+                <td className={cellClass}>{formatCount(user.bank_balance)}</td>
+                <td className={cellClass}>{formatCount(user.xp)}</td>
+                <td className={cellClass}>{formatCount(user.games_played)} / {formatCount(user.wins)}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  if (section === 'economy') {
+    return (
+      <div className="command-surface overflow-hidden">
+        <div className="mb-4 flex items-center justify-between">
+          <div><p className="text-[9px] uppercase tracking-[.22em] text-white/25">ledger</p><p className="mt-1 text-sm text-white/80">Recent economy transactions</p></div>
+          <span className="text-[10px] text-white/30">{formatCount(snapshot.economy.transaction_count)} total</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px]">
+            <thead><tr className="text-left text-[9px] uppercase tracking-[.16em] text-white/25">
+              <th className={cellClass}>time</th><th className={cellClass}>user</th><th className={cellClass}>type</th><th className={cellClass}>amount</th><th className={cellClass}>description</th>
+            </tr></thead>
+            <tbody>{snapshot.economy.recent_transactions.map((tx) => (
+              <tr key={String(tx.id)} className={rowClass}>
+                <td className={cellClass}>{formatDate(tx.created_at)}</td>
+                <td className={cellClass}>{tx.user_id}</td>
+                <td className={cellClass}>{tx.type}</td>
+                <td className={cellClass}>{formatCount(tx.amount)}</td>
+                <td className={cellClass + " text-white/45"}>{tx.description || '—'}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  if (section === 'rpg') {
+    return (
+      <div className="grid gap-4 xl:grid-cols-[.75fr_.75fr_1.5fr]">
+        <div className="command-surface">
+          <p className="text-[9px] uppercase tracking-[.22em] text-white/25">classes</p>
+          <div className="mt-4 space-y-2">{snapshot.rpg.classes.map((item) => (
+            <div key={item.character_class} className="flex justify-between text-xs"><span className="text-white/55">{item.character_class}</span><span className="text-white/80">{formatCount(item.count)}</span></div>
+          ))}</div>
+        </div>
+        <div className="command-surface">
+          <p className="text-[9px] uppercase tracking-[.22em] text-white/25">regions</p>
+          <div className="mt-4 space-y-2">{snapshot.rpg.regions.map((item) => (
+            <div key={item.region_id} className="flex justify-between text-xs"><span className="text-white/55">{item.region_id}</span><span className="text-white/80">{formatCount(item.count)}</span></div>
+          ))}</div>
+        </div>
+        <div className="command-surface overflow-hidden">
+          <div className="mb-4 flex items-center justify-between"><p className="text-[9px] uppercase tracking-[.22em] text-white/25">progression feed</p><span className="text-[10px] text-white/30">{formatCount(snapshot.rpg.players)} players</span></div>
+          <div className="space-y-2">{snapshot.rpg.recent_players.map((player) => (
+            <div key={player.thread_id + ':' + player.user_id} className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[.02] px-3 py-2.5">
+              <div><p className="text-xs text-white/70">{player.user_id}</p><p className="text-[9px] text-white/25">{player.character_class} · {player.region_id}</p></div>
+              <div className="text-right"><p className="text-xs text-white/75">Lv {formatCount(player.level)}</p><p className="text-[9px] text-white/25">renown {formatCount(player.renown)}</p></div>
+            </div>
+          ))}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (section === 'games') {
+    const rate = toNumber(snapshot.games.games_played) ? (toNumber(snapshot.games.wins) / toNumber(snapshot.games.games_played) * 100).toFixed(1) : '0.0';
+    return (
+      <div className="command-surface">
+        <p className="text-[9px] uppercase tracking-[.22em] text-white/25">game engine telemetry</p>
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            ['plays', formatCount(snapshot.games.games_played)],
+            ['wins', formatCount(snapshot.games.wins)],
+            ['players', formatCount(snapshot.games.players_with_games)],
+            ['win rate', rate + '%'],
+          ].map(([label, value]) => <div key={label} className="rounded-2xl border border-white/5 bg-white/[.02] p-4"><p className="text-[9px] uppercase tracking-[.16em] text-white/25">{label}</p><p className="mt-2 text-lg text-white/80">{value}</p></div>)}
+        </div>
+        <p className="mt-4 text-[10px] text-white/25">Game logic remains in the Messenger bot; this surface only reads persisted counters.</p>
+      </div>
+    );
+  }
+
+  if (section === 'moderation') {
+    return (
+      <div className="command-surface overflow-hidden">
+        <div className="mb-4"><p className="text-[9px] uppercase tracking-[.22em] text-white/25">automod feed</p><p className="mt-1 text-sm text-white/80">Recent moderation incidents</p></div>
+        <div className="space-y-2">{snapshot.moderation.recent_incidents.map((incident) => (
+          <div key={String(incident.id)} className="rounded-2xl border border-white/5 bg-white/[.02] p-3">
+            <div className="flex items-center justify-between gap-3"><span className="text-xs text-white/70">{incident.category}</span><span className="text-[9px] uppercase tracking-[.15em] text-white/30">{incident.action} · severity {incident.severity}</span></div>
+            <div className="mt-2 flex flex-wrap gap-3 text-[10px] text-white/35"><span>user {incident.user_id}</span><span>confidence {Number(incident.confidence).toFixed(2)}</span><span>{formatDate(incident.created_at)}</span></div>
+            {incident.reason && <p className="mt-2 text-[10px] leading-5 text-white/40">{incident.reason}</p>}
+          </div>
+        ))}</div>
+      </div>
+    );
+  }
+
+  if (section === 'music') {
+    const music = runtime?.music || {};
+    return (
+      <div className="command-surface">
+        <p className="text-[9px] uppercase tracking-[.22em] text-white/25">music pipeline</p>
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            ['active jobs', formatCount(music.activeJobs as number)],
+            ['pending', formatCount(music.pendingJobs as number)],
+            ['downloads', formatCount(music.activeDownloads as number)],
+            ['tracked GCs', formatCount(music.trackedGCs as number)],
+          ].map(([label, value]) => <div key={label} className="rounded-2xl border border-white/5 bg-white/[.02] p-4"><p className="text-[9px] uppercase tracking-[.16em] text-white/25">{label}</p><p className="mt-2 text-lg text-white/80">{value}</p></div>)}
+        </div>
+        <p className="mt-4 text-[10px] text-white/25">Music state is read directly from the live runtime queue; no duplicate queue exists in the dashboard.</p>
+      </div>
+    );
+  }
+
+  if (section === 'analytics') {
+    return (
+      <div className="command-surface">
+        <p className="text-[9px] uppercase tracking-[.22em] text-white/25">system analytics</p>
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            ['participants', formatCount(snapshot.users.total_users)],
+            ['wallet + bank', formatCount(toNumber(snapshot.users.wallet_circulation) + toNumber(snapshot.users.bank_circulation))],
+            ['RPG players', formatCount(snapshot.rpg.players)],
+            ['economy tx', formatCount(snapshot.economy.transaction_count)],
+            ['RPG inventory', formatCount(snapshot.rpg.inventory_items)],
+            ['equipment', formatCount(snapshot.rpg.equipment)],
+            ['battles 24h', formatCount(snapshot.rpg.battles_24h)],
+            ['automod 24h', formatCount(snapshot.moderation.incidents_24h)],
+          ].map(([label, value]) => <div key={label} className="rounded-2xl border border-white/5 bg-white/[.02] p-4"><p className="text-[9px] uppercase tracking-[.16em] text-white/25">{label}</p><p className="mt-2 text-lg text-white/80">{value}</p></div>)}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function App() {
@@ -201,7 +393,9 @@ export default function App() {
     () => sessionStorage.getItem(DASHBOARD_KEY_STORAGE) || ''
   );
   const [apiReady, setApiReady] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);\n  const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);\n  const [runtime, setRuntime] = useState<DashboardRuntime | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
+  const [runtime, setRuntime] = useState<DashboardRuntime | null>(null);
   const [activeSection, setActiveSection] = useState<GalaxyNodeId>('overview');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -675,6 +869,22 @@ export default function App() {
                           <span className={signal.ok ? 'text-[#C8B9D9]' : 'text-white/35'}>{signal.value}</span>
                         </div>
                       ))}
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3 text-xs">
+                        <span className="text-white/38">Database</span>
+                        <span className={runtime?.database ? 'text-[#C8B9D9]' : 'text-white/35'}>{runtime?.database ? 'healthy' : 'unavailable'}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3 text-xs">
+                        <span className="text-white/38">Watchdog</span>
+                        <span className="text-white/55">{String(runtime?.watchdog?.mode || 'unknown')}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-white/5 pb-3 text-xs">
+                        <span className="text-white/38">Traffic queue</span>
+                        <span className="text-white/55">{formatCount(runtime?.traffic?.queue as number)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-white/38">Uptime</span>
+                        <span className="text-white/55">{Math.floor((runtime?.uptime_seconds || 0) / 3600)}h {Math.floor(((runtime?.uptime_seconds || 0) % 3600) / 60)}m</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -699,16 +909,7 @@ export default function App() {
               )}
 
               {module && (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  {module.bullets.map((bullet, index) => (
-                    <div key={bullet} className="command-surface min-h-32">
-                      <p className="text-[9px] uppercase tracking-[.22em] text-white/25">0{index + 1}</p>
-                      <Sparkles size={17} className="mt-5 text-[#A994C7]" />
-                      <p className="mt-4 text-sm text-white/75">{bullet}</p>
-                      <p className="mt-1 text-[10px] text-white/25">module surface ready</p>
-                    </div>
-                  ))}
-                </div>
+                <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
               )}
 
               {activeSection === 'settings' && (
