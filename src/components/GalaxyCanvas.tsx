@@ -1,346 +1,441 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react';
 
 export type GalaxyNodeId =
-  | 'overview'
-  | 'messenger'
-  | 'users'
-  | 'economy'
-  | 'rpg'
-  | 'games'
-  | 'moderation'
-  | 'music'
-  | 'analytics'
-  | 'logs'
-  | 'health'
-  | 'settings';
+  | 'overview' | 'messenger' | 'users' | 'economy' | 'rpg' | 'games'
+  | 'moderation' | 'music' | 'analytics' | 'logs' | 'health' | 'settings';
 
-type GalaxyNode = {
+interface Orbit { rx: number; ry: number; }
+
+const ORBITS: Orbit[] = [
+  { rx: 128, ry: 64 },
+  { rx: 195, ry: 150 },
+  { rx: 270, ry: 118 },
+  { rx: 345, ry: 240 },
+];
+
+const BELT_ORBIT = 2;
+
+interface GalaxyNode {
   id: GalaxyNodeId;
   label: string;
-  subtitle: string;
-  x: number;
-  y: number;
-  radius: number;
+  orbit: number;
+  angle: number;
   color: string;
-};
-
-type Props = {
-  focusId: GalaxyNodeId;
-  onSelect: (id: GalaxyNodeId) => void;
-};
-
-const NODES: GalaxyNode[] = [
-  { id: 'overview', label: 'COMMAND', subtitle: 'core', x: 0, y: 0, radius: 34, color: '#F4EFF8' },
-  { id: 'messenger', label: 'MESSENGER', subtitle: 'gateway', x: -330, y: -85, radius: 21, color: '#B9829B' },
-  { id: 'users', label: 'USERS', subtitle: 'people', x: -500, y: 170, radius: 16, color: '#A994C7' },
-  { id: 'economy', label: 'ECONOMY', subtitle: 'circulation', x: -210, y: 330, radius: 22, color: '#7A3949' },
-  { id: 'rpg', label: 'RPG', subtitle: 'world', x: 260, y: 280, radius: 28, color: '#A994C7' },
-  { id: 'games', label: 'GAMES', subtitle: 'arcade', x: 465, y: 40, radius: 18, color: '#B9829B' },
-  { id: 'moderation', label: 'MODERATION', subtitle: 'watch', x: 390, y: -235, radius: 22, color: '#7A3949' },
-  { id: 'music', label: 'MUSIC', subtitle: 'audio', x: 80, y: -360, radius: 17, color: '#A994C7' },
-  { id: 'analytics', label: 'ANALYTICS', subtitle: 'signals', x: -120, y: 520, radius: 15, color: '#D8D2E3' },
-  { id: 'logs', label: 'LOGS', subtitle: 'history', x: 620, y: 260, radius: 14, color: '#D8D2E3' },
-  { id: 'health', label: 'BOT HEALTH', subtitle: 'vital signs', x: 600, y: -390, radius: 16, color: '#B9829B' },
-  { id: 'settings', label: 'SETTINGS', subtitle: 'control', x: -540, y: -330, radius: 14, color: '#D8D2E3' },
-];
-
-const CONNECTIONS: [GalaxyNodeId, GalaxyNodeId][] = [
-  ['overview', 'messenger'],
-  ['overview', 'economy'],
-  ['overview', 'rpg'],
-  ['overview', 'moderation'],
-  ['overview', 'music'],
-  ['overview', 'games'],
-  ['overview', 'analytics'],
-  ['messenger', 'users'],
-  ['economy', 'analytics'],
-  ['rpg', 'games'],
-  ['moderation', 'logs'],
-  ['music', 'health'],
-  ['health', 'logs'],
-  ['settings', 'overview'],
-];
-
-function seeded(seed: number) {
-  const value = Math.sin(seed * 12.9898) * 43758.5453;
-  return value - Math.floor(value);
+  size: number;
 }
 
-export default function GalaxyCanvas({ focusId, onSelect }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const frameRef = useRef<number | null>(null);
-  const viewRef = useRef({ x: 0, y: 0, zoom: 0.92 });
-  const dragRef = useRef({ active: false, x: 0, y: 0, startX: 0, startY: 0 });
-  const focusRef = useRef(focusId);
+const NODES: GalaxyNode[] = [
+  { id: 'messenger', label: 'Messenger', orbit: 0, angle: 18, color: '#b9829b', size: 7 },
+  { id: 'users', label: 'Users', orbit: 0, angle: 205, color: '#a994c7', size: 6 },
+  { id: 'economy', label: 'Economy', orbit: 1, angle: 60, color: '#c9a86a', size: 7 },
+  { id: 'rpg', label: 'RPG', orbit: 1, angle: 300, color: '#8fb0d2', size: 8 },
+  { id: 'games', label: 'Games', orbit: 1, angle: 160, color: '#7ac9a0', size: 6 },
+  { id: 'moderation', label: 'Moderation', orbit: 2, angle: 20, color: '#d88a8a', size: 6 },
+  { id: 'music', label: 'Music', orbit: 2, angle: 130, color: '#e0a9d0', size: 6 },
+  { id: 'analytics', label: 'Analytics', orbit: 2, angle: 240, color: '#9ac9e0', size: 6 },
+  { id: 'logs', label: 'Logs', orbit: 3, angle: 80, color: '#c6c6c6', size: 5 },
+  { id: 'health', label: 'Bot Health', orbit: 3, angle: 195, color: '#e08a8a', size: 5 },
+  { id: 'settings', label: 'Settings', orbit: 3, angle: 310, color: '#a0a0a0', size: 5 },
+];
 
-  const stars = useMemo(
-    () =>
-      Array.from({ length: 850 }, (_, index) => ({
-        x: seeded(index + 1) * 1800 - 900,
-        y: seeded(index + 901) * 1300 - 650,
-        r: 0.35 + seeded(index + 1801) * 1.35,
-        a: 0.25 + seeded(index + 2701) * 0.65,
-        twinkle: 0.8 + seeded(index + 3601) * 2.4,
-      })),
-    []
-  );
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
 
-  const nodeMap = useMemo(
-    () => new Map(NODES.map((node) => [node.id, node])),
+interface Star { x: number; y: number; r: number; o: number; glow: boolean; tw: number; }
+interface Bokeh { x: number; y: number; r: number; o: number; hue: string; }
+interface DistantGalaxy { x: number; y: number; rx: number; ry: number; rot: number; o: number; hue: string; }
+interface Belt { angle: number; jitter: number; r: number; o: number; }
+interface Comet { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; len: number; }
+
+function buildStars(count: number, seed: number, w: number, h: number): Star[] {
+  const rand = seededRandom(seed);
+  return Array.from({ length: count }, () => ({
+    x: rand() * w,
+    y: rand() * h,
+    r: rand() * 1.4 + 0.3,
+    o: rand() * 0.6 + 0.25,
+    glow: rand() > 0.9,
+    tw: rand() * 6 + 3,
+  }));
+}
+
+function buildBokeh(count: number, seed: number, w: number, h: number): Bokeh[] {
+  const rand = seededRandom(seed);
+  const hues = ['rgba(185,130,155,', 'rgba(169,148,199,', 'rgba(143,176,210,'];
+  return Array.from({ length: count }, () => ({
+    x: rand() * w,
+    y: rand() * h,
+    r: rand() * 30 + 18,
+    o: rand() * 0.05 + 0.02,
+    hue: hues[Math.floor(rand() * hues.length)],
+  }));
+}
+
+function buildDistantGalaxies(count: number, seed: number, w: number, h: number): DistantGalaxy[] {
+  const rand = seededRandom(seed);
+  const hues = [
+    'rgba(216,169,208,', 'rgba(154,201,224,',
+    'rgba(201,168,106,', 'rgba(169,148,199,',
+  ];
+  return Array.from({ length: count }, () => ({
+    x: rand() * w,
+    y: rand() * h,
+    rx: rand() * 22 + 14,
+    ry: rand() * 8 + 4,
+    rot: rand() * Math.PI,
+    o: rand() * 0.16 + 0.05,
+    hue: hues[Math.floor(rand() * hues.length)],
+  }));
+}
+
+function buildBelt(count: number, seed: number): Belt[] {
+  const rand = seededRandom(seed);
+  return Array.from({ length: count }, () => ({
+    angle: rand() * 360,
+    jitter: (rand() - 0.5) * 14,
+    r: rand() * 1.3 + 0.4,
+    o: rand() * 0.35 + 0.12,
+  }));
+}
+
+function drawStarLayer(ctx: CanvasRenderingContext2D, stars: Star[], t: number, w: number, h: number) {
+  ctx.clearRect(0, 0, w, h);
+  for (const star of stars) {
+    const twinkle = star.glow ? 0.55 + Math.sin(t / (star.tw * 500) + star.x) * 0.45 : 1;
+    ctx.globalAlpha = star.o * twinkle;
+    ctx.beginPath();
+    if (star.glow) {
+      const grad = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, star.r * 5);
+      grad.addColorStop(0, 'rgba(244,239,248,0.9)');
+      grad.addColorStop(1, 'rgba(244,239,248,0)');
+      ctx.fillStyle = grad;
+      ctx.arc(star.x, star.y, star.r * 5, 0, Math.PI * 2);
+    } else {
+      ctx.fillStyle = '#f4eff8';
+      ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawDistantGalaxies(ctx: CanvasRenderingContext2D, galaxies: DistantGalaxy[]) {
+  for (const g of galaxies) {
+    ctx.save();
+    ctx.translate(g.x, g.y);
+    ctx.rotate(g.rot);
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, g.rx);
+    grad.addColorStop(0, g.hue + g.o + ')');
+    grad.addColorStop(1, g.hue + '0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, g.rx, g.ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawBokeh(ctx: CanvasRenderingContext2D, dots: Bokeh[]) {
+  for (const b of dots) {
+    const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+    grad.addColorStop(0, b.hue + b.o + ')');
+    grad.addColorStop(1, b.hue + '0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawComets(ctx: CanvasRenderingContext2D, comets: Comet[], w: number, h: number) {
+  ctx.clearRect(0, 0, w, h);
+  for (const c of comets) {
+    const alpha = Math.max(0, 1 - c.life / c.maxLife);
+    const tailX = c.x - c.vx * c.len;
+    const tailY = c.y - c.vy * c.len;
+    const grad = ctx.createLinearGradient(c.x, c.y, tailX, tailY);
+    grad.addColorStop(0, \`rgba(244,239,248,\${alpha})\`);
+    grad.addColorStop(1, 'rgba(244,239,248,0)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(c.x, c.y);
+    ctx.lineTo(tailX, tailY);
+    ctx.stroke();
+  }
+}
+
+export interface GalaxyCanvasProps {
+  focusId: GalaxyNodeId;
+  onSelect: (id: GalaxyNodeId) => void;
+}
+
+const DRAG_THRESHOLD = 6;
+const MIN_ZOOM = 0.6;
+const MAX_ZOOM = 1.8;
+
+function pointerDistance(a: { x: number; y: number }, b: { x: number; y: number }) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+export default function GalaxyCanvas({ focusId, onSelect }: GalaxyCanvasProps) {
+  const farRef = useRef<HTMLCanvasElement | null>(null);
+  const midRef = useRef<HTMLCanvasElement | null>(null);
+  const nearRef = useRef<HTMLCanvasElement | null>(null);
+  const fxRef = useRef<HTMLCanvasElement | null>(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const dragOrigin = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const movedDistance = useRef(0);
+  const suppressNextClick = useRef(false);
+  const pinch = useRef<{ startDist: number; startZoom: number } | null>(null);
+  const starsRef = useRef<{ far: Star[]; mid: Star[]; near: Star[] }>({ far: [], mid: [], near: [] });
+  const galaxiesRef = useRef<DistantGalaxy[]>([]);
+  const bokehRef = useRef<Bokeh[]>([]);
+  const cometsRef = useRef<Comet[]>([]);
+  const nextCometAt = useRef(0);
+  const belt = useMemo(() => buildBelt(70, 77), []);
+  const reducedMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     []
   );
 
   useEffect(() => {
-    focusRef.current = focusId;
-    const node = nodeMap.get(focusId);
-    if (!node) return;
-    const view = viewRef.current;
-    const targetX = -node.x * 0.62;
-    const targetY = -node.y * 0.62;
-    view.x += (targetX - view.x) * 0.22;
-    view.y += (targetY - view.y) * 0.22;
-  }, [focusId, nodeMap]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let width = 1;
-    let height = 1;
+    const canvases = [farRef.current, midRef.current, nearRef.current, fxRef.current];
+    if (canvases.some((canvas) => !canvas)) return;
 
     const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-    resize();
-
-    const draw = (time: number) => {
-      const view = viewRef.current;
-      const focus = nodeMap.get(focusRef.current);
-      if (focus && !dragRef.current.active) {
-        const targetX = -focus.x * 0.62;
-        const targetY = -focus.y * 0.62;
-        view.x += (targetX - view.x) * 0.025;
-        view.y += (targetY - view.y) * 0.025;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-
-      const bg = ctx.createRadialGradient(
-        width * 0.5,
-        height * 0.45,
-        10,
-        width * 0.5,
-        height * 0.5,
-        Math.max(width, height) * 0.78
-      );
-      bg.addColorStop(0, '#17131E');
-      bg.addColorStop(0.48, '#0D0B12');
-      bg.addColorStop(1, '#050509');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, width, height);
-
-      const nebula = (x: number, y: number, radius: number, color: string) => {
-        const g = ctx.createRadialGradient(x, y, 0, x, y, radius);
-        g.addColorStop(0, color);
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.globalAlpha = 0.13;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvases.forEach((canvas) => {
+        if (canvas) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+      });
+      starsRef.current = {
+        far: buildStars(180, 11, w, h),
+        mid: buildStars(90, 29, w, h),
+        near: buildStars(40, 53, w, h),
       };
-
-      nebula(width * 0.18, height * 0.28, Math.min(width, height) * 0.42, '#7A3949');
-      nebula(width * 0.76, height * 0.30, Math.min(width, height) * 0.48, '#6B4D82');
-      nebula(width * 0.60, height * 0.78, Math.min(width, height) * 0.45, '#463A61');
-
-      const cx = width / 2 + view.x;
-      const cy = height / 2 + view.y;
-      const scale = view.zoom;
-
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.scale(scale, scale);
-
-      for (let arm = 0; arm < 3; arm += 1) {
-        ctx.beginPath();
-        for (let i = 0; i <= 180; i += 1) {
-          const t = i / 180;
-          const angle = t * Math.PI * 4.5 + arm * ((Math.PI * 2) / 3);
-          const radius = t * 570;
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius * 0.56;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = arm === 1 ? 'rgba(169,148,199,.13)' : 'rgba(216,210,227,.08)';
-        ctx.lineWidth = 24;
-        ctx.stroke();
-      }
-
-      stars.forEach((star, index) => {
-        const pulse = 0.7 + Math.sin(time * 0.001 * star.twinkle + index) * 0.3;
-        ctx.globalAlpha = star.a * pulse;
-        ctx.fillStyle = '#F4EFF8';
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.r / Math.max(scale, 0.65), 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1;
-
-      CONNECTIONS.forEach(([a, b]) => {
-        const na = nodeMap.get(a);
-        const nb = nodeMap.get(b);
-        if (!na || !nb) return;
-        ctx.beginPath();
-        ctx.moveTo(na.x, na.y);
-        ctx.lineTo(nb.x, nb.y);
-        ctx.strokeStyle = 'rgba(216,210,227,.10)';
-        ctx.lineWidth = 1 / scale;
-        ctx.stroke();
-      });
-
-      NODES.forEach((node) => {
-        const active = node.id === focusRef.current;
-        const pulse = active ? 1 + Math.sin(time * 0.003) * 0.08 : 1;
-
-        ctx.save();
-        ctx.shadowBlur = active ? 28 : 15;
-        ctx.shadowColor = node.color;
-        ctx.fillStyle = node.color;
-        ctx.globalAlpha = active ? 0.95 : 0.72;
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius * pulse, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = '#08070B';
-        ctx.globalAlpha = 0.82;
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, Math.max(3, node.radius * 0.34), 0, Math.PI * 2);
-        ctx.fill();
-
-        if (active) {
-          ctx.globalAlpha = 0.45;
-          ctx.strokeStyle = node.color;
-          ctx.lineWidth = 2 / scale;
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, node.radius + 13, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        ctx.globalAlpha = active ? 0.9 : 0.55;
-        ctx.fillStyle = '#F4EFF8';
-        ctx.font = `600 ${Math.max(8, 11 / scale)}px system-ui`;
-        ctx.textAlign = 'center';
-        ctx.fillText(node.label, node.x, node.y + node.radius + 19 / scale);
-        ctx.globalAlpha = 0.42;
-        ctx.font = `400 ${Math.max(7, 9 / scale)}px system-ui`;
-        ctx.fillText(node.subtitle, node.x, node.y + node.radius + 31 / scale);
-        ctx.restore();
-      });
-
-      ctx.restore();
-
-      frameRef.current = requestAnimationFrame(draw);
+      galaxiesRef.current = buildDistantGalaxies(6, 41, w, h);
+      bokehRef.current = buildBokeh(10, 63, w, h);
     };
 
-    frameRef.current = requestAnimationFrame(draw);
+    resize();
+    window.addEventListener('resize', resize);
+    let raf = 0;
+    let running = true;
 
+    const spawnComet = (w: number, h: number) => {
+      const fromLeft = Math.random() > 0.5;
+      const startX = fromLeft ? -40 : w + 40;
+      const startY = Math.random() * h * 0.5;
+      const speed = 5 + Math.random() * 3.5;
+      const dir = fromLeft ? 1 : -1;
+      cometsRef.current.push({
+        x: startX, y: startY, vx: dir * speed * 0.9, vy: speed * 0.55,
+        life: 0, maxLife: 60, len: 14,
+      });
+    };
+
+    const loop = (t: number) => {
+      if (!running) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const far = farRef.current?.getContext('2d');
+      const mid = midRef.current?.getContext('2d');
+      const near = nearRef.current?.getContext('2d');
+      const fx = fxRef.current?.getContext('2d');
+
+      if (far) {
+        far.clearRect(0, 0, w, h);
+        drawDistantGalaxies(far, galaxiesRef.current);
+        drawStarLayer(far, starsRef.current.far, t, w, h);
+      }
+      if (mid) drawStarLayer(mid, starsRef.current.mid, t, w, h);
+      if (near) {
+        near.clearRect(0, 0, w, h);
+        drawBokeh(near, bokehRef.current);
+        drawStarLayer(near, starsRef.current.near, t, w, h);
+      }
+      if (fx) {
+        if (!reducedMotion) {
+          if (t > nextCometAt.current) {
+            spawnComet(w, h);
+            nextCometAt.current = t + 6000 + Math.random() * 7000;
+          }
+          cometsRef.current.forEach((comet) => {
+            comet.x += comet.vx;
+            comet.y += comet.vy;
+            comet.life += 1;
+          });
+          cometsRef.current = cometsRef.current.filter((comet) => comet.life < comet.maxLife);
+        }
+        drawComets(fx, cometsRef.current, w, h);
+      }
+      if (!reducedMotion) raf = requestAnimationFrame(loop);
+    };
+
+    raf = requestAnimationFrame(loop);
     return () => {
-      observer.disconnect();
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      running = false;
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(raf);
     };
-  }, [nodeMap, stars]);
+  }, [reducedMotion]);
 
-  const worldPoint = (clientX: number, clientY: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    const view = viewRef.current;
-    return {
-      x: (clientX - rect.left - rect.width / 2 - view.x) / view.zoom,
-      y: (clientY - rect.top - rect.height / 2 - view.y) / view.zoom,
-    };
-  };
+  const onPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    event.currentTarget.setPointerCapture?.(event.pointerId);
 
-  const pickNode = (clientX: number, clientY: number) => {
-    const point = worldPoint(clientX, clientY);
-    let hit: GalaxyNode | null = null;
-    let distance = Infinity;
+    if (pointers.current.size === 1) {
+      movedDistance.current = 0;
+      dragOrigin.current = {
+        x: event.clientX,
+        y: event.clientY,
+        panX: pan.x,
+        panY: pan.y,
+      };
+      pinch.current = null;
+    } else if (pointers.current.size === 2) {
+      const [a, b] = Array.from(pointers.current.values());
+      pinch.current = { startDist: pointerDistance(a, b), startZoom: zoom };
+    }
+  }, [pan, zoom]);
 
-    for (const node of NODES) {
-      const d = Math.hypot(point.x - node.x, point.y - node.y);
-      if (d < node.radius + 22 / viewRef.current.zoom && d < distance) {
-        hit = node;
-        distance = d;
-      }
+  const onPointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!pointers.current.has(event.pointerId)) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointers.current.size >= 2 && pinch.current) {
+      const [a, b] = Array.from(pointers.current.values());
+      const ratio = pointerDistance(a, b) / (pinch.current.startDist || 1);
+      setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinch.current.startZoom * ratio)));
+      movedDistance.current = DRAG_THRESHOLD + 1;
+      return;
     }
 
-    if (hit) {
-      onSelect(hit.id);
+    if (pointers.current.size === 1) {
+      const dx = event.clientX - dragOrigin.current.x;
+      const dy = event.clientY - dragOrigin.current.y;
+      movedDistance.current = Math.max(movedDistance.current, Math.hypot(dx, dy));
+      setPan({
+        x: dragOrigin.current.panX + dx,
+        y: dragOrigin.current.panY + dy,
+      });
     }
-  };
+  }, []);
+
+  const endPointer = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(event.pointerId);
+    if (pointers.current.size < 2) pinch.current = null;
+
+    try {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    } catch {
+      // Browser may already have released pointer capture.
+    }
+
+    if (pointers.current.size === 0 && movedDistance.current > DRAG_THRESHOLD) {
+      suppressNextClick.current = true;
+    }
+  }, []);
+
+  const onWheel = useCallback((event: ReactWheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setZoom((currentZoom) =>
+      Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, currentZoom - event.deltaY * 0.0009))
+    );
+  }, []);
+
+  const handleNodeClick = useCallback((id: GalaxyNodeId) => {
+    if (suppressNextClick.current) {
+      suppressNextClick.current = false;
+      return;
+    }
+    onSelect(id);
+  }, [onSelect]);
+
+  const beltOrbit = ORBITS[BELT_ORBIT];
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-[#050509]">
-      <canvas
-        ref={canvasRef}
-        className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
-        onPointerDown={(event) => {
-          dragRef.current = { active: true, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY };
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          if (!dragRef.current.active) return;
-          const view = viewRef.current;
-          view.x += event.clientX - dragRef.current.x;
-          view.y += event.clientY - dragRef.current.y;
-          dragRef.current.x = event.clientX;
-          dragRef.current.y = event.clientY;
-        }}
-        onPointerUp={(event) => {
-          const moved = Math.hypot(
-            event.clientX - dragRef.current.x,
-            event.clientY - dragRef.current.y
-          );
-          dragRef.current.active = false;
-          event.currentTarget.releasePointerCapture(event.pointerId);
-          if (moved < 3) pickNode(event.clientX, event.clientY);
-        }}
-        onDoubleClick={(event) => pickNode(event.clientX, event.clientY)}
-        onWheel={(event) => {
-          event.preventDefault();
-          const view = viewRef.current;
-          const before = worldPoint(event.clientX, event.clientY);
-          const nextZoom = Math.min(2.4, Math.max(0.58, view.zoom * Math.exp(-event.deltaY * 0.001)));
-          view.zoom = nextZoom;
-          const canvas = canvasRef.current;
-          if (!canvas) return;
-          const rect = canvas.getBoundingClientRect();
-          view.x = event.clientX - rect.left - rect.width / 2 - before.x * nextZoom;
-          view.y = event.clientY - rect.top - rect.height / 2 - before.y * nextZoom;
-        }}
-      />
-
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(5,5,9,.38)_100%)]" />
-
-      <div className="pointer-events-none absolute bottom-5 left-5 hidden rounded-full border border-white/10 bg-black/20 px-4 py-2 text-[10px] uppercase tracking-[.24em] text-white/45 backdrop-blur-md sm:block">
-        drag · scroll to zoom · tap a constellation
+    <div
+      className="galaxy-root"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endPointer}
+      onPointerCancel={endPointer}
+      onWheel={onWheel}
+    >
+      <canvas ref={farRef} className="galaxy-layer galaxy-layer-far" aria-hidden="true"
+        style={{ transform: \`translate3d(\${pan.x * 0.15}px, \${pan.y * 0.15}px, 0)\` }} />
+      <div className="galaxy-nebula" aria-hidden="true"
+        style={{ transform: \`translate3d(\${pan.x * 0.2}px, \${pan.y * 0.2}px, 0)\` }}>
+        <span className="nebula-a" /><span className="nebula-b" />
+        <span className="nebula-c" /><span className="nebula-d" />
       </div>
+      <canvas ref={midRef} className="galaxy-layer galaxy-layer-mid" aria-hidden="true"
+        style={{ transform: \`translate3d(\${pan.x * 0.35}px, \${pan.y * 0.35}px, 0)\` }} />
+      <canvas ref={fxRef} className="galaxy-layer galaxy-layer-fx" aria-hidden="true"
+        style={{ transform: \`translate3d(\${pan.x * 0.35}px, \${pan.y * 0.35}px, 0)\` }} />
+      <canvas ref={nearRef} className="galaxy-layer galaxy-layer-near" aria-hidden="true"
+        style={{ transform: \`translate3d(\${pan.x * 0.55}px, \${pan.y * 0.55}px, 0)\` }} />
+
+      <div className="galaxy-system"
+        style={{ transform: \`translate3d(\${pan.x}px, \${pan.y}px, 0) scale(\${zoom})\` }}>
+        <div className="galaxy-sun" aria-hidden="true"><span className="galaxy-sun-corona" /></div>
+
+        <svg className="galaxy-orbits" viewBox="-400 -400 800 800" aria-hidden="true">
+          {ORBITS.map((orbit, index) => (
+            <ellipse key={index} cx="0" cy="0" rx={orbit.rx} ry={orbit.ry}
+              className={\`orbit-ring orbit-ring-\${index}\`} />
+          ))}
+          <g className="galaxy-belt">
+            {belt.map((point, index) => {
+              const rad = (point.angle * Math.PI) / 180;
+              const rx = beltOrbit.rx + point.jitter;
+              const ry = beltOrbit.ry + point.jitter * (beltOrbit.ry / beltOrbit.rx);
+              return (
+                <circle key={index}
+                  cx={Math.cos(rad) * rx}
+                  cy={Math.sin(rad) * ry}
+                  r={point.r} fill="#d8d2e3" opacity={point.o} />
+              );
+            })}
+          </g>
+        </svg>
+
+        {NODES.map((node) => {
+          const orbit = ORBITS[node.orbit];
+          const rad = (node.angle * Math.PI) / 180;
+          const x = Math.cos(rad) * orbit.rx;
+          const y = Math.sin(rad) * orbit.ry;
+          const active = node.id === focusId;
+          return (
+            <button key={node.id} type="button"
+              className={\`galaxy-node \${active ? 'is-active' : ''}\`}
+              style={{
+                transform: \`translate3d(\${x}px, \${y}px, 0)\`,
+                ['--node-color' as string]: node.color,
+                ['--node-size' as string]: \`\${node.size}px\`,
+              }}
+              onClick={() => handleNodeClick(node.id)}>
+              <span className="galaxy-node-dot" />
+              <span className="galaxy-node-label">{node.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="galaxy-vignette" aria-hidden="true" />
     </div>
   );
 }
