@@ -1,76 +1,60 @@
-/* ECLIPSE Deadpool dashboard backdrop override.
-   Image source: Peakpx — white-background Deadpool playful wallpaper.
-   Kept as a background only; the existing dashboard controls remain interactive. */
-
-html,
-body,
-#root {
-  background: #fff;
-}
-
-.eclipse-shell {
-  background: #fff !important;
-}
-
-.galaxy-root {
-  background-color: #fff !important;
-  background-image: url("https://w0.peakpx.com/wallpaper/650/75/HD-wallpaper-deadpool-funny-fun-lovely-zedge.jpg") !important;
-  background-repeat: no-repeat !important;
-  background-position: 82% 78% !important;
-  background-size: min(58vw, 760px) auto !important;
-}
-
-/* The baked galaxy backdrop is intentionally almost transparent so the new
-   white Deadpool background is actually visible instead of being painted over. */
-.galaxy-layer-far {
-  opacity: .075 !important;
-}
-
-.galaxy-nebula {
-  opacity: .08 !important;
-}
-
-.galaxy-layer-mid {
-  opacity: .42 !important;
-}
-
-.galaxy-layer-fx {
-  opacity: .5 !important;
-}
-
-.galaxy-layer-near {
-  opacity: .46 !important;
-}
-
-/* Darken the navigation nodes slightly for contrast against white. */
-.galaxy-node {
-  color: #3b3442 !important;
-}
-
-.galaxy-node-label {
-  background: rgba(255,255,255,.86) !important;
-  color: rgba(45,39,52,.78) !important;
-  box-shadow: 0 6px 20px rgba(40,30,50,.14) !important;
-}
-
-.orbit-ring {
-  stroke: rgba(65,58,72,.16) !important;
-}
-
-.orbit-ring-0 { stroke: rgba(185,130,155,.28) !important; }
-.orbit-ring-1 { stroke: rgba(169,148,199,.24) !important; }
-.orbit-ring-2 { stroke: rgba(143,176,210,.22) !important; }
-.orbit-ring-3 { stroke: rgba(65,58,72,.14) !important; }
-
-.galaxy-vignette {
-  background:
-    linear-gradient(90deg, rgba(255,255,255,.08), transparent 22%, transparent 78%, rgba(255,255,255,.08)),
-    linear-gradient(180deg, rgba(255,255,255,.08), transparent 18%, transparent 82%, rgba(255,255,255,.1)) !important;
-}
-
-@media (max-width: 1023px) {
-  .galaxy-root {
-    background-position: 50% 88% !important;
-    background-size: min(88vw, 520px) auto !important;
-  }
-}
+/* ECLIPSE Deadpool dashboard theme. White playful wallpaper + crisp comic-panel UI. */
+html, body, #root { background:#fff !important; color:#171717; }
+body { background:radial-gradient(circle at 12% 8%,rgba(220,38,38,.055),transparent 24%),radial-gradient(circle at 90% 86%,rgba(17,24,39,.045),transparent 28%),#fff !important; }
+.eclipse-shell { background:transparent !important; color:#171717 !important; }
+.galaxy-root { background-color:#fff !important; background-image:url("https://w0.peakpx.com/wallpaper/650/75/HD-wallpaper-deadpool-funny-fun-lovely-zedge.jpg") !important; background-repeat:no-repeat !important; background-position:82% 78% !important; background-size:min(58vw,760px) auto !important; }
+.galaxy-layer-far { opacity:.035 !important; }
+.galaxy-nebula { opacity:.035 !important; }
+.galaxy-layer-mid { opacity:.22 !important; }
+.galaxy-layer-fx { opacity:.28 !important; }
+.galaxy-layer-near { opacity:.24 !important; }
+.command-panel,.command-panel.is-overview { border:1px solid rgba(17,24,39,.10) !important; background:rgba(255,255,255,.90) !important; color:#171717 !important; box-shadow:0 24px 70px rgba(17,24,39,.14),0 2px 0 rgba(17,24,39,.04) !important; backdrop-filter:blur(24px) saturate(1.08) !important; -webkit-backdrop-filter:blur(24px) saturate(1.08) !important; }
+.command-panel-inner { color:#171717 !important; }
+.command-panel .text-white,.command-panel .text-white\/80,.command-panel .text-white\/75,.command-panel .text-white\/70,.command-panel .text-white\/65,.command-panel .text-white\/60,.command-panel .text-white\/55 { color:#252525 !important; }
+.command-panel .text-white\/45,.command-panel .text-white\/40,.command-panel .text-white\/35,.command-panel .text-white\/30,.command-panel .text-white\/25,.command-panel .text-white\/20 { color:rgba(23,23,23,.52) !important; }
+.command-panel .signal-card,.command-panel .command-surface,.command-panel .module-tile { border-color:rgba(17,24,39,.09) !important; background:rgba(255,255,255,.74) !important; color:#252525 !important; box-shadow:0 8px 24px rgba(17,24,39,.045),inset 0 1px rgba(255,255,255,.8) !important; }
+.command-panel .module-tile:hover { background:rgba(220,38,38,.055) !important; border-color:rgba(185,28,28,.20) !important; }
+.command-panel .module-tile b { color:#171717 !important; }
+.command-panel .module-tile small { color:rgba(23,23,23,.54) !important; }
+.eclipse-kicker { color:rgba(17,24,39,.52) !important; }
+.eclipse-mark { border-color:rgba(17,24,39,.16) !important; background:radial-gradient(circle at 38% 35%,#fff 0 18%,transparent 20%),#111827 !important; box-shadow:0 8px 28px rgba(17,24,39,.14) !important; }
+.eclipse-mark::before { border-color:rgba(220,38,38,.65) !important; }
+.eclipse-mark::after { border-color:rgba(17,24,39,.16) !important; }
+.eclipse-mark span { background:#fff !important; box-shadow:0 0 12px rgba(255,255,255,.8) !important; }
+.status-orbit { border-color:rgba(17,24,39,.10) !important; background:rgba(255,255,255,.76) !important; color:rgba(17,24,39,.56) !important; box-shadow:0 5px 18px rgba(17,24,39,.05) !important; }
+.status-orbit.is-live { color:rgba(17,24,39,.72) !important; }
+.status-orbit.is-live > span,.signal-dot.is-live { background:#dc2626 !important; box-shadow:0 0 10px rgba(220,38,38,.5) !important; }
+.nav-chip { color:rgba(17,24,39,.58) !important; }
+.nav-chip:hover { color:#111827 !important; background:rgba(17,24,39,.055) !important; }
+.nav-chip.is-active { color:#fff !important; background:#b91c1c !important; box-shadow:0 7px 20px rgba(185,28,28,.20),inset 0 0 0 1px rgba(127,29,29,.22) !important; }
+.eclipse-button { border-color:#991b1b !important; background:linear-gradient(135deg,#dc2626,#991b1b) !important; box-shadow:0 10px 25px rgba(185,28,28,.20) !important; }
+.eclipse-button-secondary { border-color:rgba(17,24,39,.12) !important; background:rgba(255,255,255,.78) !important; color:#252525 !important; }
+.eclipse-input { border-color:rgba(17,24,39,.12) !important; background:rgba(255,255,255,.90) !important; color:#171717 !important; box-shadow:inset 0 1px 2px rgba(17,24,39,.04) !important; }
+.eclipse-input::placeholder { color:rgba(17,24,39,.38) !important; }
+.eclipse-input:focus { border-color:rgba(185,28,28,.45) !important; box-shadow:0 0 0 3px rgba(220,38,38,.09) !important; }
+.command-palette-trigger { border-color:rgba(17,24,39,.11) !important; background:rgba(255,255,255,.84) !important; color:rgba(17,24,39,.58) !important; box-shadow:0 5px 18px rgba(17,24,39,.05) !important; }
+.command-palette-trigger:hover { background:#fff !important; color:#111827 !important; }
+.command-panel .glass-card { background:rgba(255,255,255,.74) !important; border-color:rgba(17,24,39,.09) !important; color:#171717 !important; box-shadow:0 8px 24px rgba(17,24,39,.045) !important; }
+.command-panel .glass-card input,.command-panel .glass-card textarea { color:#171717 !important; background:#fff !important; border-color:rgba(17,24,39,.12) !important; }
+.command-panel .glass-card [class*="bg-white"],.command-panel .glass-card [class*="bg-coquette-50"],.command-panel .glass-card [class*="bg-lilac-50"],.command-panel .glass-card [class*="bg-blush-50"] { background:rgba(17,24,39,.035) !important; }
+.command-panel .glass-card [class*="text-coquette-800"],.command-panel .glass-card [class*="text-lilac-800"] { color:#171717 !important; }
+.command-panel .glass-card [class*="text-coquette-700"],.command-panel .glass-card [class*="text-lilac-700"] { color:rgba(17,24,39,.70) !important; }
+.command-panel .glass-card [class*="text-coquette-500"],.command-panel .glass-card [class*="text-coquette-400"],.command-panel .glass-card [class*="text-lilac-500"],.command-panel .glass-card [class*="text-lilac-400"] { color:rgba(17,24,39,.52) !important; }
+.command-panel .glass-card [class*="text-coquette-300"],.command-panel .glass-card [class*="text-lilac-300"] { color:rgba(17,24,39,.40) !important; }
+.command-panel .glass-card [class*="border-coquette-"],.command-panel .glass-card [class*="border-lilac-"],.command-panel .glass-card [class*="border-rose-"] { border-color:rgba(17,24,39,.09) !important; }
+.galaxy-node { color:#171717 !important; }
+.galaxy-node-label { background:rgba(255,255,255,.92) !important; color:#252525 !important; border:1px solid rgba(17,24,39,.08) !important; box-shadow:0 6px 18px rgba(17,24,39,.10) !important; }
+.orbit-ring { stroke:rgba(17,24,39,.12) !important; }
+.orbit-ring-0 { stroke:rgba(185,28,28,.24) !important; }
+.orbit-ring-1 { stroke:rgba(17,24,39,.15) !important; }
+.orbit-ring-2 { stroke:rgba(220,38,38,.13) !important; }
+.orbit-ring-3 { stroke:rgba(17,24,39,.10) !important; }
+.galaxy-vignette { background:linear-gradient(90deg,rgba(255,255,255,.10),transparent 20%,transparent 80%,rgba(255,255,255,.16)),linear-gradient(180deg,rgba(255,255,255,.12),transparent 16%,transparent 84%,rgba(255,255,255,.20)) !important; }
+.scrollbar-coquette { scrollbar-color:rgba(185,28,28,.45) transparent !important; }
+.scrollbar-coquette::-webkit-scrollbar-thumb { background:rgba(185,28,28,.45) !important; }
+.command-palette { border-color:rgba(17,24,39,.12) !important; background:rgba(255,255,255,.96) !important; color:#171717 !important; box-shadow:0 30px 90px rgba(17,24,39,.18) !important; }
+.command-palette-item { color:rgba(17,24,39,.64) !important; }
+.command-palette-item:hover { background:rgba(220,38,38,.07) !important; color:#111827 !important; }
+.command-palette-item small { color:rgba(17,24,39,.44) !important; }
+.command-palette-trigger kbd { border-color:rgba(17,24,39,.12) !important; color:rgba(17,24,39,.40) !important; }
+@media (max-width:1023px) { .galaxy-root { background-position:50% 88% !important; background-size:min(88vw,520px) auto !important; } }
