@@ -1,0 +1,10 @@
+{
+  "name": "ECLIPSE Command Center",
+  "short_name": "ECLIPSE",
+  "description": "Private ECLIPSE Messenger command center.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050509",
+  "theme_color": "#050509",
+  "icons": []
+}
