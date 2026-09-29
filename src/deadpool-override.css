@@ -1,0 +1,63 @@
+/* Final Deadpool wallpaper override. Keeps the existing app layout/API intact while removing the galaxy visuals. */
+html,
+body,
+#root,
+.eclipse-shell {
+  background: #fff !important;
+}
+
+.eclipse-shell {
+  position: relative;
+  isolation: isolate;
+  color: #171717 !important;
+}
+
+/* The old GalaxyCanvas stays mounted for navigation compatibility, but its galaxy is fully hidden. */
+.galaxy-root {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  background-color: #fff !important;
+  background-image: url("https://wallpapers.com/images/hd/funny-deadpool-s89wsog4ikeegke7.jpg") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 7% bottom 0 !important;
+  background-size: min(58vw, 760px) auto !important;
+}
+
+.galaxy-root > canvas,
+.galaxy-root > .galaxy-nebula,
+.galaxy-root > .galaxy-system,
+.galaxy-root > .galaxy-vignette {
+  display: none !important;
+}
+
+/* Prevent the old full-screen gradient veil from dimming the white wallpaper. */
+.eclipse-shell > .pointer-events-none.absolute.inset-0 {
+  background: linear-gradient(90deg, rgba(255,255,255,.98), rgba(255,255,255,.82) 36%, rgba(255,255,255,.18) 72%, rgba(255,255,255,.42)) !important;
+}
+
+/* White comic-style surfaces. */
+.command-panel,
+.command-panel.is-overview {
+  border-color: rgba(17,24,39,.10) !important;
+  background: rgba(255,255,255,.90) !important;
+  color: #171717 !important;
+  box-shadow: 0 24px 70px rgba(17,24,39,.14), 0 2px 0 rgba(17,24,39,.04) !important;
+  backdrop-filter: blur(24px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.08) !important;
+}
+
+@media (max-width: 1023px) {
+  .galaxy-root {
+    background-position: 50% bottom !important;
+    background-size: min(92vw, 560px) auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-root { background-position: 50% bottom !important; }
+}
