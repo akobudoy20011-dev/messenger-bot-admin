@@ -1,0 +1,138 @@
+/* ECLIPSE dashboard foundation layer.
+   Deliberately additive: the existing custom background and visual system stay intact. */
+:root {
+  color-scheme: dark;
+  --eclipse-focus: rgba(169,148,199,.62);
+}
+
+html {
+  min-height: 100%;
+  background: #050509;
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--eclipse-focus);
+  outline-offset: 2px;
+}
+
+/* Prevent accidental horizontal overflow from wide data surfaces on phones. */
+.command-panel,
+.command-panel-inner,
+.command-surface,
+.signal-card {
+  min-width: 0;
+}
+
+.command-panel-inner {
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dense data tables remain readable while becoming scrollable instead of breaking the shell. */
+.command-surface table {
+  border-collapse: collapse;
+}
+
+.command-surface th {
+  white-space: nowrap;
+}
+
+.command-surface td {
+  vertical-align: middle;
+}
+
+/* Safe-area support for iPhone/iPad browsers. */
+@media (max-width: 1023px) {
+  .command-panel,
+  .command-panel.is-overview {
+    width: calc(100vw - 1rem);
+    max-width: none;
+    border-radius: 24px;
+  }
+
+  .command-panel-inner {
+    padding: 18px;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  }
+
+  .command-surface {
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .command-panel,
+  .command-panel.is-overview {
+    width: calc(100vw - .75rem);
+    margin-inline: auto;
+    border-radius: 20px;
+  }
+
+  .command-panel-inner {
+    padding: 14px;
+  }
+
+  .module-tile {
+    min-height: 64px;
+    border-radius: 16px;
+    padding: 11px;
+  }
+
+  .signal-card {
+    padding: 10px;
+  }
+
+  .eclipse-input,
+  .eclipse-button,
+  .eclipse-button-secondary {
+    min-height: 44px;
+  }
+
+  .command-palette {
+    width: calc(100vw - 1rem);
+    border-radius: 20px;
+  }
+}
+
+/* Reduced-motion users keep the same information architecture without animated panels. */
+@media (prefers-reduced-motion: reduce) {
+  .command-panel,
+  .module-tile,
+  .eclipse-button,
+  .eclipse-button-secondary {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Keyboard users get a visible, consistent focus treatment even over the custom background. */
+@media (hover: none) {
+  .module-tile:hover,
+  .eclipse-button:hover,
+  .eclipse-button-secondary:hover {
+    transform: none;
+  }
+}
