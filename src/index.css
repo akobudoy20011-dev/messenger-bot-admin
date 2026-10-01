@@ -1414,8 +1414,12 @@ button {
 
 .deadpool-bg {
   z-index: 0;
-  background:
-    url("https://wallpaperaccess.com/full/6417.jpg") center center / cover no-repeat;
+  background-image:
+    url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallpaperaccess.com%2Ffull%2F6417.jpg&f=1&nofb=1&ipt=7aad9ac7545b7581560d335b3bbc5afdab3d4df7d3f2ddf74d5d71b21f4365a6&ipo=images"),
+    url("https://images.hdqwalls.com/download/deadpool-breaking-the-fourth-wall-vl-3840x2160.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   transform: scale(1.015);
   filter: saturate(.92) contrast(1.08);
 }
