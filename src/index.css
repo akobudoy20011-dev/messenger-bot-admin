@@ -1382,3 +1382,882 @@ button {
   }
 }
 
+
+
+/* ============================================================
+   ECLIPSE — DEADPOOL CONTROL ROOM
+   Focused dashboard: status, cookie, bot controls, essentials.
+   ============================================================ */
+
+.eclipse-deadpool {
+  --dp-red: #e21b23;
+  --dp-red-dark: #8d0f16;
+  --dp-black: #070707;
+  --dp-panel: rgba(10, 10, 10, .78);
+  --dp-line: rgba(255, 255, 255, .11);
+  --dp-text: #f5f5f5;
+  --dp-muted: rgba(255,255,255,.52);
+  color: var(--dp-text);
+  background: #050505 !important;
+}
+
+.eclipse-deadpool .galaxy-root {
+  display: none !important;
+}
+
+.deadpool-bg,
+.deadpool-shade {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.deadpool-bg {
+  z-index: 0;
+  background:
+    url("https://wallpaperaccess.com/full/6417.jpg") center center / cover no-repeat;
+  transform: scale(1.015);
+  filter: saturate(.92) contrast(1.08);
+}
+
+.deadpool-shade {
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.35) 62%, rgba(0,0,0,.72) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.12) 34%, rgba(0,0,0,.76) 100%);
+}
+
+.deadpool-header {
+  position: fixed !important;
+  inset: 0 0 auto 0;
+  z-index: 60 !important;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px clamp(14px, 3vw, 38px);
+  background: rgba(0,0,0,.58);
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.deadpool-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: white;
+  text-align: left;
+}
+
+.deadpool-logo {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #ed252d, #8e0e14);
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: 0 8px 30px rgba(220,20,30,.28), inset 0 1px rgba(255,255,255,.2);
+}
+
+.deadpool-logo span {
+  font-size: 21px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+
+.deadpool-title {
+  font-family: var(--font-display, Inter, sans-serif);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .3em;
+}
+
+.deadpool-subtitle {
+  margin-top: 2px;
+  color: rgba(255,255,255,.38);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .2em;
+}
+
+.deadpool-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deadpool-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px;
+  background: rgba(0,0,0,.45);
+  color: rgba(255,255,255,.48);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.deadpool-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #777;
+  box-shadow: 0 0 8px rgba(255,255,255,.12);
+}
+
+.deadpool-status.is-live {
+  color: #fff;
+  border-color: rgba(224,35,43,.42);
+}
+
+.deadpool-status.is-live span {
+  background: #35e27d;
+  box-shadow: 0 0 10px rgba(53,226,125,.75);
+}
+
+.deadpool-refresh {
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 11px;
+  background: rgba(0,0,0,.45);
+  color: rgba(255,255,255,.7);
+}
+
+.deadpool-refresh:hover {
+  border-color: rgba(225,27,35,.6);
+  background: rgba(225,27,35,.14);
+}
+
+.deadpool-login {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 100px 18px 40px;
+}
+
+.deadpool-login-card {
+  width: min(560px, 100%);
+  padding: clamp(24px, 5vw, 46px);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 26px;
+  background: rgba(5,5,5,.78);
+  box-shadow: 0 35px 100px rgba(0,0,0,.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.deadpool-eyebrow {
+  color: #ff3a41;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .24em;
+}
+
+.deadpool-login-card h1,
+.deadpool-hero h1 {
+  margin-top: 9px;
+  font-family: var(--font-display, Inter, sans-serif);
+  font-size: clamp(35px, 6vw, 62px);
+  font-weight: 900;
+  line-height: .95;
+  letter-spacing: -.045em;
+}
+
+.deadpool-login-card > p:not(.deadpool-eyebrow) {
+  margin-top: 15px;
+  color: rgba(255,255,255,.5);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.deadpool-key-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.deadpool-input {
+  min-width: 0;
+  flex: 1;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255,255,255,.06);
+  color: white;
+}
+
+.deadpool-input::placeholder { color: rgba(255,255,255,.3); }
+.deadpool-input:focus { border-color: rgba(225,27,35,.75); box-shadow: 0 0 0 3px rgba(225,27,35,.12); }
+
+.deadpool-button,
+.cookie-connect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ec242d, #9c1118);
+  color: white;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  box-shadow: 0 9px 25px rgba(225,27,35,.22);
+}
+
+.deadpool-button {
+  min-width: 118px;
+  padding: 0 16px;
+}
+
+.deadpool-button:hover,
+.cookie-connect:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+.deadpool-mini-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 25px;
+  color: rgba(255,255,255,.22);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.deadpool-dashboard {
+  position: relative;
+  z-index: 10;
+  width: min(1320px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 102px 0 50px;
+}
+
+.deadpool-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 13px;
+  border: 1px solid rgba(225,27,35,.38);
+  border-radius: 12px;
+  background: rgba(70,7,11,.7);
+  color: #ffb0b3;
+  font-size: 10px;
+}
+
+.deadpool-alert span { color: rgba(255,255,255,.55); }
+
+.deadpool-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 16px;
+}
+
+.deadpool-hero > div:first-child p:last-child {
+  margin-top: 10px;
+  color: rgba(255,255,255,.52);
+  font-size: 12px;
+}
+
+.deadpool-account {
+  min-width: 230px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 15px;
+  background: rgba(5,5,5,.62);
+  backdrop-filter: blur(18px);
+}
+
+.deadpool-account > span,
+.deadpool-runtime-list b::before {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #777;
+}
+
+.deadpool-account > span.is-online {
+  background: #35e27d;
+  box-shadow: 0 0 9px rgba(53,226,125,.65);
+}
+
+.deadpool-account b { display: block; color: white; font-size: 11px; }
+.deadpool-account small { display: block; margin-top: 2px; color: rgba(255,255,255,.35); font-size: 9px; }
+
+.deadpool-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.deadpool-stat {
+  padding: 13px 14px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  background: rgba(5,5,5,.66);
+  backdrop-filter: blur(18px);
+}
+
+.deadpool-stat span {
+  display: block;
+  color: rgba(255,255,255,.3);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.deadpool-stat b {
+  display: block;
+  margin-top: 5px;
+  color: white;
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+
+.deadpool-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(290px, .55fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.deadpool-main-column,
+.deadpool-side {
+  display: grid;
+  gap: 10px;
+}
+
+.deadpool-connection,
+.deadpool-panel,
+.deadpool-actions > * {
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 19px;
+  background: var(--dp-panel);
+  box-shadow: 0 18px 55px rgba(0,0,0,.3);
+  backdrop-filter: blur(22px) saturate(115%);
+  -webkit-backdrop-filter: blur(22px) saturate(115%);
+}
+
+.deadpool-connection {
+  padding: 17px;
+}
+
+.deadpool-connection-head,
+.deadpool-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.deadpool-connection-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deadpool-fb-mark {
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: #1877f2;
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.deadpool-connection-title span,
+.deadpool-panel-head span {
+  display: block;
+  color: #ff3a41;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.deadpool-connection-title h2,
+.deadpool-panel-head h2 {
+  margin-top: 3px;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.deadpool-connection-meta {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.deadpool-connection-meta > div {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+}
+
+.deadpool-connection-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255,255,255,.3);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.deadpool-connection-meta b {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: rgba(255,255,255,.78);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cookie-dock {
+  margin-top: 10px;
+  padding: 13px;
+  border: 1px solid rgba(225,27,35,.3);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(90,9,13,.28), rgba(0,0,0,.24));
+}
+
+.cookie-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cookie-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #ff545a;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.cookie-dock-head b {
+  display: block;
+  margin-top: 2px;
+  color: white;
+  font-size: 12px;
+}
+
+.cookie-safe {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #69e5a0;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.cookie-input-wrap {
+  position: relative;
+}
+
+.cookie-input {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  padding: 10px 42px 10px 11px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 11px;
+  outline: none;
+  background: rgba(0,0,0,.55);
+  color: #f7f7f7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.cookie-input:focus { border-color: rgba(225,27,35,.65); box-shadow: 0 0 0 3px rgba(225,27,35,.09); }
+.cookie-input::placeholder { color: rgba(255,255,255,.25); }
+
+.cookie-secret {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.cookie-eye {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  background: rgba(0,0,0,.5);
+  color: rgba(255,255,255,.55);
+}
+
+.cookie-buttons {
+  display: flex;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.cookie-connect {
+  width: 100%;
+  min-height: 39px;
+  padding: 0 12px;
+}
+
+.cookie-connect:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+  transform: none;
+}
+
+.cookie-note {
+  margin-top: 7px;
+  color: rgba(255,255,255,.28);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.deadpool-session-row {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.deadpool-file-button,
+.deadpool-secondary-button,
+.deadpool-danger-button,
+.deadpool-disconnect {
+  min-height: 37px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.deadpool-file-button {
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.055);
+  color: rgba(255,255,255,.75);
+}
+
+.deadpool-secondary-button {
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.6);
+}
+
+.deadpool-danger-button {
+  border: 1px solid rgba(225,27,35,.28);
+  background: rgba(225,27,35,.08);
+  color: #ff858a;
+}
+
+.deadpool-file-button:hover,
+.deadpool-secondary-button:hover,
+.deadpool-danger-button:hover,
+.deadpool-disconnect:hover {
+  border-color: rgba(255,255,255,.25);
+  background: rgba(255,255,255,.09);
+}
+
+.deadpool-file-button:has(input:disabled),
+.deadpool-secondary-button:disabled,
+.deadpool-danger-button:disabled {
+  cursor: not-allowed;
+  opacity: .38;
+}
+
+.deadpool-connection-error {
+  display: flex;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 9px 10px;
+  border: 1px solid rgba(225,27,35,.3);
+  border-radius: 10px;
+  background: rgba(80,6,10,.5);
+  color: #ff9da1;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.deadpool-panel {
+  padding: 14px;
+}
+
+.deadpool-panel-head > svg {
+  color: #ff3a41;
+}
+
+.deadpool-nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.deadpool-nav-grid button {
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+  color: rgba(255,255,255,.55);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.deadpool-nav-grid button:hover,
+.deadpool-nav-grid button.is-active {
+  border-color: rgba(225,27,35,.4);
+  background: rgba(225,27,35,.1);
+  color: white;
+}
+
+.deadpool-runtime-list {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.deadpool-runtime-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.deadpool-runtime-list span {
+  color: rgba(255,255,255,.35);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+}
+
+.deadpool-runtime-list b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 65%;
+  overflow: hidden;
+  color: rgba(255,255,255,.72);
+  font-size: 9px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deadpool-runtime-list b::before {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 5px;
+  background: #ff3a41;
+}
+
+.deadpool-panel-small {
+  padding-bottom: 12px;
+}
+
+.deadpool-disconnect {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.5);
+}
+
+.deadpool-detail,
+.deadpool-events {
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 19px;
+  background: rgba(5,5,5,.78);
+  box-shadow: 0 18px 55px rgba(0,0,0,.3);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  padding: 15px;
+}
+
+.deadpool-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.deadpool-detail-head span {
+  color: #ff3a41;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.deadpool-detail-head h2 {
+  margin-top: 3px;
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.deadpool-detail-head button {
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px;
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.5);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.deadpool-events {
+  opacity: .85;
+}
+
+@media (max-width: 900px) {
+  .deadpool-dashboard {
+    width: min(100% - 18px, 720px);
+    padding-top: 88px;
+  }
+
+  .deadpool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deadpool-side {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .deadpool-panel-small {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .deadpool-header {
+    height: 64px;
+    padding: 9px 10px;
+  }
+
+  .deadpool-logo {
+    width: 37px;
+    height: 37px;
+  }
+
+  .deadpool-title { font-size: 13px; }
+  .deadpool-subtitle { font-size: 7px; }
+
+  .deadpool-header-actions .deadpool-status {
+    display: none;
+  }
+
+  .deadpool-dashboard {
+    width: calc(100% - 12px);
+    padding-top: 76px;
+    padding-bottom: 25px;
+  }
+
+  .deadpool-hero {
+    display: block;
+  }
+
+  .deadpool-hero h1 {
+    font-size: 40px;
+  }
+
+  .deadpool-account {
+    min-width: 0;
+    margin-top: 12px;
+  }
+
+  .deadpool-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .deadpool-connection,
+  .deadpool-panel,
+  .deadpool-detail,
+  .deadpool-events {
+    border-radius: 15px;
+  }
+
+  .deadpool-connection-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .deadpool-session-row {
+    grid-template-columns: 1fr;
+  }
+
+  .deadpool-side {
+    grid-template-columns: 1fr;
+  }
+
+  .deadpool-panel-small {
+    grid-column: auto;
+  }
+
+  .deadpool-key-row {
+    flex-direction: column;
+  }
+
+  .deadpool-button {
+    min-height: 44px;
+  }
+
+  .deadpool-login-card {
+    padding: 24px 19px;
+  }
+
+  .deadpool-events {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deadpool-bg { transform: none; }
+  .deadpool-button:hover,
+  .cookie-connect:hover { transform: none; }
+}
