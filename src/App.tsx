@@ -907,95 +907,45 @@ export default function App() {
     );
   }
 
-  return (
-    <main className="eclipse-shell relative min-h-screen overflow-hidden">
+return (
+    <main className="eclipse-shell eclipse-deadpool relative min-h-screen overflow-hidden">
       <GalaxyCanvas focusId={activeSection} onSelect={selectSection} />
 
-      <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(90deg,rgba(5,5,9,.72),transparent_35%,transparent_68%,rgba(5,5,9,.62))]" />
+      <div className="deadpool-bg" aria-hidden="true" />
+      <div className="deadpool-shade" aria-hidden="true" />
 
-      <header className="relative z-30 flex items-center justify-between px-4 py-4 sm:px-7 lg:px-9">
-        <button
-          className="pointer-events-auto flex items-center gap-3"
-          onClick={() => selectSection('overview')}
-          aria-label="ECLIPSE command center"
-        >
-          <div className="eclipse-mark h-10 w-10">
-            <span />
-          </div>
-          <div className="hidden text-left sm:block">
-            <p className="font-display text-sm tracking-[.36em] text-white/90">ECLIPSE</p>
-            <p className="text-[9px] uppercase tracking-[.24em] text-white/35">messenger operating system</p>
+      <header className="deadpool-header">
+        <button className="deadpool-brand" onClick={() => selectSection('overview')} aria-label="ECLIPSE dashboard">
+          <div className="deadpool-logo"><span>☠</span></div>
+          <div>
+            <p className="deadpool-title">ECLIPSE</p>
+            <p className="deadpool-subtitle">MESSENGER CONTROL</p>
           </div>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="deadpool-header-actions">
           <CommandPalette items={commandItems} onSelect={(id) => void handleCommand(id)} />
-          <div className={`status-orbit ${apiReady ? 'is-live' : ''}`}>
+          <div className={apiReady ? 'deadpool-status is-live' : 'deadpool-status'}>
             <span />
-            {apiReady ? 'runtime linked' : 'runtime waiting'}
+            {apiReady ? 'ONLINE' : 'OFFLINE'}
           </div>
-          <button
-            className="pointer-events-auto rounded-full border border-white/10 bg-black/25 p-2.5 text-white/60 backdrop-blur-xl hover:bg-white/10 lg:hidden"
-            onClick={() => setMobileNavOpen((value) => !value)}
-            aria-label="Toggle navigation"
-          >
-            {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+          <button className="deadpool-refresh" onClick={() => void handleCommand('action:refresh')} title="Refresh dashboard" aria-label="Refresh dashboard">
+            <Activity size={16} />
           </button>
         </div>
       </header>
 
-      <nav className="relative z-30 mx-4 mb-3 hidden max-w-[calc(100vw-2rem)] overflow-x-auto rounded-full border border-white/10 bg-black/25 p-1.5 backdrop-blur-xl lg:mx-7 lg:flex xl:mx-9">
-        {NAV.map((item) => {
-          const Icon = item.icon;
-          const active = item.id === activeSection;
-          return (
-            <button
-              key={item.id}
-              onClick={() => selectSection(item.id)}
-              className={`nav-chip ${active ? 'is-active' : ''}`}
-            >
-              <Icon size={14} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {mobileNavOpen && (
-        <nav className="relative z-40 mx-4 mb-4 grid grid-cols-2 gap-1.5 rounded-3xl border border-white/10 bg-[#0C0A11]/95 p-2 backdrop-blur-2xl sm:grid-cols-3 lg:hidden">
-          {NAV.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => selectSection(item.id)}
-                className={`nav-chip justify-start ${item.id === activeSection ? 'is-active' : ''}`}
-              >
-                <Icon size={14} />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-      )}
-
       {!dashboardKey ? (
-        <section className="relative z-30 flex min-h-[calc(100vh-150px)] items-center px-5 pb-16 sm:px-8 lg:px-12">
-          <div className="max-w-xl animate-slide-up">
-            <p className="eclipse-kicker">THE MESSENGER OPERATING SYSTEM</p>
-            <h1 className="mt-4 font-display text-5xl leading-[.95] text-white sm:text-7xl">
-              Enter the <span className="text-[#B9829B]">veil.</span>
-            </h1>
-            <p className="mt-6 max-w-lg text-sm leading-7 text-white/48">
-              A private command center for ECLIPSE — Messenger, RPG, economy, games,
-              moderation, music and runtime health orbiting one live system.
-            </p>
-
-            <div className="mt-8 flex max-w-md flex-col gap-2.5 sm:flex-row">
+        <section className="deadpool-login">
+          <div className="deadpool-login-card">
+            <p className="deadpool-eyebrow">ECLIPSE CONTROL PANEL</p>
+            <h1>Welcome back.</h1>
+            <p>Enter the dashboard key to open the live Messenger controls.</p>
+            <div className="deadpool-key-row">
               <input
                 type="password"
-                placeholder="ECLIPSE dashboard key"
-                className="eclipse-input flex-1"
+                placeholder="Dashboard key"
+                className="deadpool-input"
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     const value = event.currentTarget.value.trim();
@@ -1007,7 +957,7 @@ export default function App() {
                 }}
               />
               <button
-                className="eclipse-button"
+                className="deadpool-button"
                 onClick={(event) => {
                   const input = event.currentTarget.parentElement?.querySelector('input') as HTMLInputElement | null;
                   const value = input?.value.trim() || '';
@@ -1017,292 +967,128 @@ export default function App() {
                   }
                 }}
               >
-                Connect <ChevronRight size={16} />
+                CONNECT <ChevronRight size={16} />
               </button>
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[10px] uppercase tracking-[.2em] text-white/25">
-              <span>Economy</span><span>RPG</span><span>Games</span><span>Moderation</span><span>Music</span>
+            <div className="deadpool-mini-links">
+              <span>MESSENGER</span><span>ECONOMY</span><span>RPG</span><span>MODERATION</span>
             </div>
           </div>
         </section>
       ) : (
-        <section className="relative z-20 min-h-[calc(100vh-124px)] px-4 pb-8 sm:px-7 lg:px-9">
-          <div className={`command-panel ${activeSection === 'overview' ? 'is-overview' : ''} ${panelOpen ? 'is-open' : 'is-curtained'}`}>
-            <div className="command-panel-inner">
-              <div className="mb-6 flex items-start justify-between gap-5">
-                <div>
-                  <p className="eclipse-kicker">{activeNav?.label || 'Overview'}</p>
-                  <h1 className="mt-2 font-display text-3xl text-white sm:text-4xl">
-                    {activeSection === 'overview' ? 'ECLIPSE Command Center' : activeNav?.label}
-                  </h1>
-                  <p className="mt-2 max-w-xl text-xs leading-6 text-white/42">
-                    {activeSection === 'overview'
-                      ? 'Drag the galaxy, zoom through the system, or select a constellation to expand a control surface.'
-                      : module?.description || 'Operational controls and runtime state for this ECLIPSE subsystem.'}
-                  </p>
+        <section className="deadpool-dashboard">
+          {apiError && (
+            <div className="deadpool-alert">
+              <strong>Dashboard error</strong>
+              <span>{apiError}</span>
+            </div>
+          )}
+
+          <div className="deadpool-hero">
+            <div>
+              <p className="deadpool-eyebrow">ECLIPSE / LIVE</p>
+              <h1>Control room.</h1>
+              <p>Only the stuff you actually need, without the galaxy maze.</p>
+            </div>
+            <div className="deadpool-account">
+              <span className={state.facebook_connected ? 'is-online' : ''} />
+              <div>
+                <b>{state.facebook_user_name || 'Messenger not linked'}</b>
+                <small>{state.facebook_connected ? 'Facebook session connected' : 'Paste a session below'}</small>
+              </div>
+            </div>
+          </div>
+
+          <div className="deadpool-stat-grid">
+            <div className="deadpool-stat"><span>MESSENGER</span><b>{state.facebook_connected ? 'CONNECTED' : 'OFFLINE'}</b></div>
+            <div className="deadpool-stat"><span>BOT</span><b>{state.bot_running ? 'RUNNING' : 'PAUSED'}</b></div>
+            <div className="deadpool-stat"><span>DATABASE</span><b>{runtime?.database ? 'HEALTHY' : '—'}</b></div>
+            <div className="deadpool-stat"><span>UPTIME</span><b>{formatDuration(runtime?.uptime_seconds)}</b></div>
+          </div>
+
+          <div className="deadpool-grid">
+            <div className="deadpool-main-column">
+              <ConnectionCard
+                state={state}
+                busy={connBusy}
+                onConnectSession={handleConnectSession}
+                onConnectRawCookie={handleConnectRawCookie}
+                onReconnect={handleReconnect}
+                onDisconnect={handleDisconnect}
+              />
+
+              <div className="deadpool-actions">
+                <BotStatusCard state={state} busy={botBusy} onStart={handleStartBot} onStop={handleStopBot} />
+              </div>
+            </div>
+
+            <aside className="deadpool-side">
+              <div className="deadpool-panel">
+                <div className="deadpool-panel-head">
+                  <div><span>QUICK ACCESS</span><h2>Control the bot</h2></div>
+                  <Bot size={18} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="hidden rounded-full border border-white/10 p-2 text-white/45 hover:bg-white/5 sm:block"
-                    onClick={() => selectSection('overview')}
-                    aria-label="Return to command center"
-                    title="Return to command center"
-                  >
-                    <Radar size={17} />
-                  </button>
-                  <button
-                    className="panel-close-button"
-                    onClick={() => setPanelOpen(false)}
-                    aria-label="Close command center panel"
-                    title="Hide panel · press Escape"
-                  >
-                    <PanelRightClose size={17} />
-                  </button>
+                <div className="deadpool-nav-grid">
+                  {NAV.filter((item) => !['overview', 'messenger', 'settings'].includes(item.id)).map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button key={item.id} className={activeSection === item.id ? 'is-active' : ''} onClick={() => selectSection(item.id)}>
+                        <Icon size={15} />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {apiError && (
-                <div className="mb-5 rounded-2xl border border-[#7A3949]/35 bg-[#7A3949]/10 px-4 py-3 text-xs text-[#D8A9B8]">
-                  {apiError}
+              <div className="deadpool-panel">
+                <div className="deadpool-panel-head">
+                  <div><span>LIVE SIGNAL</span><h2>Runtime</h2></div>
+                  <HeartPulse size={18} />
                 </div>
-              )}
-
-              {activeSection === 'overview' && (
-                <>
-                  <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
-                    {liveSignals.map((signal) => (
-                      <div key={signal.label} className="signal-card">
-                        <div className={`signal-dot ${signal.ok ? 'is-live' : ''}`} />
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[.18em] text-white/30">{signal.label}</p>
-                          <p className="mt-1 text-xs text-white/75">{signal.value}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    <button className="module-tile" onClick={() => selectSection('rpg')}>
-                      <Gem size={18} />
-                      <span><b>RPG WORLD</b><small>world · guilds · combat · companions</small></span>
-                      <ChevronRight size={15} />
-                    </button>
-                    <button className="module-tile" onClick={() => selectSection('economy')}>
-                      <CircleDollarSign size={18} />
-                      <span><b>ECONOMY</b><small>wallet · bank · circulation</small></span>
-                      <ChevronRight size={15} />
-                    </button>
-                    <button className="module-tile" onClick={() => selectSection('moderation')}>
-                      <ShieldCheck size={18} />
-                      <span><b>MODERATION</b><small>automod · spam · warnings</small></span>
-                      <ChevronRight size={15} />
-                    </button>
-                  </div>
-
-                  <div className="mt-4 grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
-                    <div className="command-surface">
-                      <div className="mb-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[.22em] text-white/28">runtime identity</p>
-                          <p className="mt-1 text-sm text-white/80">
-                            {state.facebook_user_name || 'ECLIPSE Messenger'}
-                          </p>
-                        </div>
-                        <Bot size={18} className="text-[#A994C7]" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div><span className="text-white/30">updated</span><p className="mt-1 text-white/65">{formatDate(state.updated_at)}</p></div>
-                        <div><span className="text-white/30">last connected</span><p className="mt-1 text-white/65">{formatDate(state.last_connected_at)}</p></div>
-                      </div>
-                    </div>
-
-                    <div className="command-surface">
-                      <div className="flex items-center gap-2">
-                        <Activity size={16} className="text-[#B9829B]" />
-                        <p className="text-[9px] uppercase tracking-[.22em] text-white/28">activity pulse</p>
-                      </div>
-                      <p className="mt-3 font-display text-2xl text-white">{events.length}</p>
-                      <p className="mt-1 text-[11px] text-white/35">live runtime events retained</p>
-                    </div>
-                  </div>
-                  <div className="mt-4"><LiveEventFeed events={events} /></div>
-                </>
-              )}
-
-              {activeSection !== 'overview' && activeSection !== 'analytics' && activeSection !== 'logs' && activeSection !== 'settings' && (
-                <ModuleSignalRail section={activeSection} state={state} snapshot={snapshot} runtime={runtime} eventCount={events.length} />
-              )}
-
-              {activeSection === 'messenger' && (
-                <div className="grid gap-4 xl:grid-cols-[1.15fr_.85fr]">
-                  <ConnectionCard state={state} busy={connBusy} onConnectSession={handleConnectSession} onConnectRawCookie={handleConnectRawCookie} onReconnect={handleReconnect} onDisconnect={handleDisconnect} />
-                  <SessionCard state={state} />
+                <div className="deadpool-runtime-list">
+                  <div><span>Session</span><b>{state.session_active ? 'ACTIVE' : 'IDLE'}</b></div>
+                  <div><span>API</span><b>{apiReady ? 'ONLINE' : 'WAITING'}</b></div>
+                  <div><span>Events</span><b>{events.length}</b></div>
+                  <div><span>Last connect</span><b>{formatDate(state.last_connected_at)}</b></div>
                 </div>
-              )}
+              </div>
 
-              {activeSection === 'health' && (
-                <div className="grid gap-4 xl:grid-cols-[1fr_.8fr]">
-                  <BotStatusCard state={state} busy={botBusy} onStart={handleStartBot} onStop={handleStopBot} />
-                  <div className="space-y-4">
-                    <div className="command-surface">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2"><HeartPulse size={17} className="text-[#B9829B]" /><div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">runtime health</p><p className="mt-1 text-xs text-white/45">Live process, database and safety telemetry</p></div></div>
-                        <span className={runtime ? "rounded-full border border-[#B9829B]/20 bg-[#B9829B]/10 px-2.5 py-1 text-[9px] uppercase tracking-[.15em] text-[#D8B9C9]" : "rounded-full border border-white/10 px-2.5 py-1 text-[9px] uppercase tracking-[.15em] text-white/30"}>{runtime ? "telemetry live" : "waiting"}</span>
-                      </div>
-                      <div className="mt-5 grid grid-cols-2 gap-2.5 xl:grid-cols-4">
-                        {[
-                          ["Messenger", state.facebook_connected ? "connected" : "offline"],
-                          ["Bot", state.bot_running ? "running" : "paused"],
-                          ["Database", runtime?.database ? "healthy" : "unavailable"],
-                          ["Uptime", formatDuration(runtime?.uptime_seconds)],
-                        ].map(([label, value]) => <div key={label} className="rounded-2xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.15em] text-white/25">{label}</p><p className="mt-1 text-xs text-white/75">{value}</p></div>)}
-                      </div>
-                    </div>
-
-                    {(() => {
-                      const watchdog = runtimeRecord(runtime?.watchdog);
-                      const traffic = runtimeRecord(runtime?.traffic);
-                      const memory = runtime?.memory || {};
-                      const watchdogOk = watchdog.ok === true;
-                      const watchdogMode = String(watchdog.mode || "unknown");
-                      const queue = Number(traffic.queue || 0);
-                      const queueMax = Number(traffic.queueMax || 0);
-                      const queuePercent = Number(traffic.queuePercent ?? (queueMax ? queue / queueMax * 100 : 0));
-                      return (
-                        <>
-                          <div className="command-surface">
-                            <div className="flex items-center justify-between gap-3">
-                              <div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">watchdog</p><p className="mt-1 text-xs text-white/45">Local event-loop watchdog; Render performs the actual process restart.</p></div>
-                              <span className={watchdogOk ? "text-[#C8B9D9]" : "text-[#D8A9B8]"}>{watchdogOk ? "HEALTHY" : watchdogMode.toUpperCase()}</span>
-                            </div>
-                            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-3">
-                              {[
-                                ["mode", watchdogMode],
-                                ["started", watchdog.started === true ? "yes" : "no"],
-                                ["Messenger link", watchdog.messengerConnected === true ? "connected" : "offline"],
-                                ["failures", String(watchdog.consecutiveFailures ?? 0)],
-                                ["event-loop age", Math.max(0, Math.round(Number(watchdog.eventLoopAgeMs || 0))) + " ms"],
-                                ["last healthy", watchdog.lastHealthyAt ? formatDate(String(watchdog.lastHealthyAt)) : "—"],
-                              ].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.14em] text-white/22">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>)}
-                            </div>
-                          </div>
-
-                          <div className="command-surface">
-                            <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">traffic governor</p><p className="mt-1 text-xs text-white/45">Outgoing queue and rate protection telemetry.</p></div><span className="text-xs text-white/65">{queue} / {queueMax || "—"}</span></div>
-                            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-[#A994C7]" style={{ width: Math.min(100, Math.max(0, queuePercent)) + "%" }} /></div>
-                            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
-                              {[
-                                ["mode", String(traffic.mode || "normal")],
-                                ["sends / min", String(traffic.globalSendsLastMinute ?? 0) + " / " + String(traffic.globalLimit ?? "—")],
-                                ["effective gap", String(traffic.effectiveGapMs ?? 0) + " ms"],
-                                ["delayed", String(traffic.totalDelayed ?? 0)],
-                                ["suppressed", String(traffic.totalSuppressed ?? 0)],
-                                ["rejected", String(traffic.totalRejected ?? 0)],
-                                ["duplicates", String(traffic.duplicateBlocked ?? 0)],
-                                ["peak queue", String(traffic.peakQueue ?? 0)],
-                              ].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.14em] text-white/22">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>)}
-                            </div>
-                          </div>
-
-                          <div className="command-surface">
-                            <div className="flex items-center justify-between"><div><p className="text-[9px] uppercase tracking-[.22em] text-white/28">process</p><p className="mt-1 text-xs text-white/45">Node runtime and memory footprint.</p></div><span className="text-xs text-white/55">{runtime?.node_version || "—"}</span></div>
-                            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
-                              {[
-                                ["RSS", formatBytes(memory.rss)],
-                                ["heap used", formatBytes(memory.heapUsed)],
-                                ["heap total", formatBytes(memory.heapTotal)],
-                                ["external", formatBytes(memory.external)],
-                              ].map(([label, value]) => <div key={label} className="rounded-xl border border-white/5 bg-white/[.02] p-3"><p className="text-[9px] uppercase tracking-[.14em] text-white/22">{label}</p><p className="mt-1 text-xs text-white/70">{value}</p></div>)}
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
+              <div className="deadpool-panel deadpool-panel-small">
+                <div className="deadpool-panel-head">
+                  <div><span>ACCOUNT</span><h2>Dashboard</h2></div>
+                  <Settings size={17} />
                 </div>
-              )}
+                <button
+                  className="deadpool-disconnect"
+                  onClick={() => {
+                    sessionStorage.removeItem(DASHBOARD_KEY_STORAGE);
+                    setDashboardKey('');
+                    setApiReady(false);
+                  }}
+                >
+                  LOCK DASHBOARD
+                </button>
+              </div>
+            </aside>
+          </div>
 
-              {activeSection === 'analytics' && (
-                <div className="space-y-4">
-                  <div className="command-surface">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[9px] uppercase tracking-[.22em] text-white/25">historical signal</p>
-                        <p className="mt-1 text-sm text-white/75">ECLIPSE activity over the selected reporting window</p>
-                      </div>
-                      <span className="text-[10px] text-white/25">{analytics?.hours ?? 24}h window</span>
-                    </div>
-                  </div>
-                  <AnalyticsSurface analytics={analytics} />
-                </div>
-              )}
-
-              {activeSection === 'logs' && (
-                <LogsPanel logs={logs} onClear={handleClearLogs} />
-              )}
-
-              {activeSection !== 'analytics' && activeSection !== 'logs' && module && (
-                <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
-              )}
-
-              {activeSection === 'settings' && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="command-surface">
-                    <p className="text-[9px] uppercase tracking-[.22em] text-white/25">dashboard</p>
-                    <h2 className="mt-2 text-sm text-white/80">Session access</h2>
-                    <p className="mt-2 text-xs leading-6 text-white/35">The dashboard key is kept in browser session storage and is not written to the repository.</p>
-                    <button
-                      className="mt-5 eclipse-button-secondary"
-                      onClick={() => {
-                        sessionStorage.removeItem(DASHBOARD_KEY_STORAGE);
-                        setDashboardKey('');
-                        setApiReady(false);
-                      }}
-                    >
-                      Disconnect dashboard
-                    </button>
-                  </div>
-                  <div className="command-surface">
-                    <p className="text-[9px] uppercase tracking-[.22em] text-white/25">visual system</p>
-                    <h2 className="mt-2 text-sm text-white/80">Galaxy interaction</h2>
-                    <p className="mt-2 text-xs leading-6 text-white/35">The background is a navigable command surface: drag to pan, scroll to zoom, and select constellations to expand modules.</p>
-                  </div>
-                </div>
-              )}
+          {activeSection !== 'overview' && activeSection !== 'messenger' && activeSection !== 'settings' && snapshot && (
+            <div className="deadpool-detail">
+              <div className="deadpool-detail-head">
+                <div><span>{activeNav?.label || 'MODULE'}</span><h2>{module?.title || activeNav?.label}</h2></div>
+                <button onClick={() => setActiveSection('overview')}>CLOSE</button>
+              </div>
+              <ModuleDataSurface section={activeSection} snapshot={snapshot} runtime={runtime} />
             </div>
+          )}
+
+          <div className="deadpool-events">
+            <LiveEventFeed events={events.slice(0, 8)} />
           </div>
         </section>
       )}
-
-      {!panelOpen && dashboardKey && (
-        <button
-          className="panel-curtain-tab pointer-events-auto"
-          onClick={() => setPanelOpen(true)}
-          aria-label="Open command center panel"
-          title="Open command center panel"
-        >
-          <PanelRightOpen size={16} />
-          <span>COMMAND CENTER</span>
-        </button>
-      )}
-
-      {inspectorOpen && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-end bg-black/35 p-3 backdrop-blur-[2px]" onMouseDown={() => setInspectorOpen(false)}>
-          <div className="command-panel w-full max-w-xl" onMouseDown={(event) => event.stopPropagation()}>
-            <div className="command-panel-inner">
-              <div className="mb-5 flex items-center justify-between"><div><p className="eclipse-kicker">USER INSPECTOR</p><h2 className="mt-2 text-xl text-white">Deep identity lookup</h2></div><button className="rounded-full border border-white/10 p-2 text-white/40 hover:bg-white/5" onClick={() => setInspectorOpen(false)}><X size={16} /></button></div>
-              <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
-                <input className="eclipse-input" value={inspectorThreadId} onChange={(event) => setInspectorThreadId(event.target.value)} placeholder="thread ID" />
-                <input className="eclipse-input" value={inspectorUserId} onChange={(event) => setInspectorUserId(event.target.value)} placeholder="user ID" onKeyDown={(event) => { if (event.key === 'Enter') void inspectUser(); }} />
-                <button className="eclipse-button" disabled={inspectorBusy} onClick={() => void inspectUser()}>{inspectorBusy ? 'Loading…' : 'Inspect'}</button>
-              </div>
-              {inspector?.user && <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">{[['wallet', inspector.user.balance], ['bank', inspector.user.bank_balance], ['XP', inspector.user.xp], ['level', inspector.user.level], ['games', inspector.user.games_played], ['wins', inspector.user.wins], ['inventory', inspector.inventory.length], ['incidents', inspector.moderation.length]].map(([label, value]) => <div key={String(label)} className="signal-card"><div><p className="text-[9px] uppercase tracking-[.15em] text-white/25">{String(label)}</p><p className="mt-1 text-xs text-white/70">{String(value ?? '—')}</p></div></div>)}</div>}
-              {inspector?.rpg && <div className="mt-3 command-surface"><p className="text-[9px] uppercase tracking-[.18em] text-white/25">RPG</p><p className="mt-2 text-xs text-white/60">{String(inspector.rpg.character_class || 'unknown')} · {String(inspector.rpg.region_id || 'unknown')} · Lv {String(inspector.rpg.level || 1)}</p></div>}
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
+
 }
